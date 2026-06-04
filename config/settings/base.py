@@ -85,11 +85,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# User model and Authentication
+AUTH_USER_MODEL = "core.User"
+AUTHENTICATION_BACKENDS = [
+    "apps.core.auth_backends.EmailOrUsernameBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
 # Internationalization
 LANGUAGE_CODE = "pt-br"
 TIME_ZONE = "America/Sao_Paulo"
 USE_I18N = True
 USE_TZ = True
+
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
