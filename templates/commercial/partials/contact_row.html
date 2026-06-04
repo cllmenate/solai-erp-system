@@ -1,0 +1,40 @@
+<div class="contact-row bg-slate-50 p-4 border border-slate-200 rounded-sm relative flex flex-col md:flex-row gap-4 items-end">
+    <!-- Contact Name -->
+    <div class="flex-1 space-y-1 w-full">
+        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide">Nome *</label>
+        <input type="text" name="contact_name[]" value="{{ contact.name }}" required 
+               class="w-full px-3 py-1.5 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+    </div>
+
+    <!-- Contact Email -->
+    <div class="flex-1 space-y-1 w-full">
+        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide">E-mail *</label>
+        <input type="email" name="contact_email[]" value="{{ contact.email }}" required 
+               class="w-full px-3 py-1.5 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+    </div>
+
+    <!-- Contact Phone -->
+    <div class="flex-1 space-y-1 w-full">
+        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide">Telefone *</label>
+        <input type="text" name="contact_phone[]" value="{{ contact.phone }}" required placeholder="(00) 00000-0000"
+               class="w-full px-3 py-1.5 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+    </div>
+
+    <!-- Contact Role -->
+    <div class="flex-1 space-y-1 w-full">
+        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide">Cargo / Função</label>
+        <input type="text" name="contact_role[]" value="{{ contact.role|default:'' }}" 
+               class="w-full px-3 py-1.5 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+    </div>
+
+    <!-- Contact Primary / Remove action -->
+    <div class="flex items-center space-x-4 h-[38px] pb-1">
+        <label class="inline-flex items-center cursor-pointer select-none">
+            <input type="checkbox" name="contact_is_primary[]" value="{{ index }}" class="w-4 h-4 text-brand-600 border-slate-300 rounded-sm focus:ring-brand-500" {% if contact.is_primary %}checked{% endif %}>
+            <span class="ml-1 text-xs text-slate-600 font-medium">Principal</span>
+        </label>
+        <button type="button" onclick="this.closest('.contact-row').remove()" class="text-rose-600 hover:text-rose-800 text-xs font-semibold py-1.5 px-2 border border-rose-200 rounded-sm hover:bg-rose-50 transition-all cursor-pointer">
+            Remover
+        </button>
+    </div>
+</div>

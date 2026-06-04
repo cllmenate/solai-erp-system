@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "simple_history",
     # Local apps (will be added as modules are created)
     "apps.core",
+    "apps.commercial",
 ]
 
 MIDDLEWARE = [

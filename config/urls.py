@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.shortcuts import render
-from django.urls import path
+from django.urls import include, path
 
 from apps.core.billing import (
     billing_view,
@@ -9,6 +9,7 @@ from apps.core.billing import (
     stripe_success,
     stripe_webhook,
 )
+from config.api import api
 
 
 def landing_page(request):
@@ -17,6 +18,12 @@ def landing_page(request):
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", landing_page, name="landing_page"),
+    
+    # Ninja API
+    path("api/", api.urls),
+    
+    # Commercial app views
+    path("commercial/", include("apps.commercial.urls")),
     
     # Stripe integration views
     path("stripe/create-checkout/", stripe_checkout, name="stripe_checkout"),
@@ -27,4 +34,5 @@ urlpatterns = [
     # Billing view
     path("billing/", billing_view, name="billing_view"),
 ]
+
 
