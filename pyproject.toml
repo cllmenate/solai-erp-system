@@ -1,0 +1,39 @@
+[project]
+name = "solai-erp-system"
+version = "0.1.0"
+description = "SolAI ERP SaaS B2B Multi-Tenant"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "django>=5.0.0,<6.0.0",
+    "django-environ>=0.11.2",
+    "django-ninja>=1.1.0",
+    "pydantic>=2.0.0",
+    "django-simple-history>=3.7.0",
+    "psycopg[binary]>=3.1.18",
+    "redis>=5.0.3",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.3.0",
+    "pytest>=8.0.0",
+    "pytest-django>=4.8.0",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "C4"]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"config/settings/*.py" = ["F403", "F405", "E501"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.testing"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "--ds=config.settings.testing"
+

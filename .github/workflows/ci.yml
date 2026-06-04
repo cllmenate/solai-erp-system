@@ -1,0 +1,62 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: solai_erp_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.14-dev'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+
+    - name: Install dependencies
+      run: uv sync
+
+    - name: Run Ruff Linter
+      run: uv run ruff check .
+
+    - name: Run Ruff Formatter Check
+      run: uv run ruff format --check .
+
+    - name: Run pytest
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/solai_erp_test
+        REDIS_URL: redis://localhost:6379/1
+        SECRET_KEY: django-insecure-ci-secret-key-used-for-testing-only-1234
+        DJANGO_SETTINGS_MODULE: config.settings.testing
+      run: uv run pytest
