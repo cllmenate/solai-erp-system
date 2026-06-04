@@ -1,7 +1,7 @@
 import uuid
-
 from django.conf import settings
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group
 from simple_history.models import HistoricalRecords
 
 
@@ -10,7 +10,6 @@ class BaseModel(models.Model):
     Abstract base model containing universal fields.
     Automatically integrates with django-simple-history.
     """
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
@@ -45,7 +44,6 @@ class Tenant(BaseModel):
     """
     Tenant representation mapping to PostgreSQL schemas.
     """
-
     company_name = models.CharField(max_length=255)
     trade_name = models.CharField(max_length=255)
     cnpj = models.CharField(max_length=18, unique=True)
@@ -70,3 +68,95 @@ class Tenant(BaseModel):
         if not self.name:
             self.name = self.trade_name or self.company_name
         super().save(*args, **kwargs)
+
+
+class Role(Group):
+    """
+    Extends Django's default Group model to represent roles inside a Tenant.
+    """
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="roles",
+        null=True,
+        blank=True
+    )
+    level = models.IntegerField(default=1)
+    description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "role"
+        verbose_name_plural = "roles"
+
+    def __str__(self):
+        return f"{self.name} (Tenant: {self.tenant})"
+
+
+class UserManager(BaseUserManager):
+    def create_user(self, username, email, password=None, **extra_fields):
+        if not username:
+            raise ValueError("The Username field must be set")
+        if not email:
+            raise ValueError("The Email field must be set")
+
+        email = self.normalize_email(email)
+        user = self.model(username=username, email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, username, email, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+
+        return self.create_user(username, email, password, **extra_fields)
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    """
+    Custom user model supporting multi-tenancy, custom roles and simple history.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="users",
+        null=True,
+        blank=True
+    )
+    username = models.CharField(max_length=150)
+    email = models.EmailField()
+    full_name = models.CharField(max_length=255, blank=True)
+    role = models.ForeignKey(
+        Role,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="users"
+    )
+
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ["email"]
+
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = "user"
+        verbose_name_plural = "users"
+        unique_together = ("tenant", "username"), ("tenant", "email")
+
+    def __str__(self):
+        return f"{self.username} ({self.email})"
