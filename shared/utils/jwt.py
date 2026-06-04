@@ -1,11 +1,13 @@
 import datetime
+
 import jwt
 from django.conf import settings
 
 
 def generate_jwt_token(user, tenant_id=None):
     """
-    Generates a JWT token for the given user containing tenant_id, user_id, and role_id in the payload.
+    Generates a JWT token containing tenant_id, user_id,
+    and role_id in the payload.
     """
     now = datetime.datetime.now(datetime.UTC)
     payload = {

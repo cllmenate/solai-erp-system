@@ -1,9 +1,11 @@
 from datetime import timedelta
+
 import pytest
-from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import authenticate, get_user_model
 from django.utils import timezone
-from apps.core.models import Tenant, Role
-from shared.utils.jwt import generate_jwt_token, decode_jwt_token
+
+from apps.core.models import Role, Tenant
+from shared.utils.jwt import decode_jwt_token, generate_jwt_token
 
 
 @pytest.mark.django_db
@@ -27,8 +29,8 @@ class TestAuthenticationAndModels:
         )
 
     def test_custom_user_creation(self):
-        User = get_user_model()
-        user = User.objects.create_user(
+        user_model = get_user_model()
+        user = user_model.objects.create_user(
             username="testuser",
             email="testuser@example.com",
             password="securepassword123",
@@ -47,8 +49,8 @@ class TestAuthenticationAndModels:
         assert user.check_password("securepassword123") is True
 
     def test_authenticate_with_username_or_email(self):
-        User = get_user_model()
-        User.objects.create_user(
+        user_model = get_user_model()
+        user_model.objects.create_user(
             username="dualuser",
             email="dualuser@example.com",
             password="dualpassword123",
@@ -56,22 +58,30 @@ class TestAuthenticationAndModels:
         )
 
         # Auth with username
-        user_by_username = authenticate(username="dualuser", password="dualpassword123")
+        user_by_username = authenticate(
+            username="dualuser", password="dualpassword123"
+        )
         assert user_by_username is not None
         assert user_by_username.username == "dualuser"
 
         # Auth with email
-        user_by_email = authenticate(username="dualuser@example.com", password="dualpassword123")
+        user_by_email = authenticate(
+            username="dualuser@example.com", password="dualpassword123"
+        )
         assert user_by_email is not None
         assert user_by_email.email == "dualuser@example.com"
 
         # Fail auth with invalid password
-        assert authenticate(username="dualuser", password="wrongpassword") is None
-        assert authenticate(username="dualuser@example.com", password="wrongpassword") is None
+        assert authenticate(
+            username="dualuser", password="wrongpassword"
+        ) is None
+        assert authenticate(
+            username="dualuser@example.com", password="wrongpassword"
+        ) is None
 
     def test_jwt_generation_and_decoding(self):
-        User = get_user_model()
-        user = User.objects.create_user(
+        user_model = get_user_model()
+        user = user_model.objects.create_user(
             username="jwtuser",
             email="jwtuser@example.com",
             password="jwtpassword123",

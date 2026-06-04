@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 
 import pytest
@@ -181,3 +182,67 @@ class TestTenantManagementCommands:
 
         # Execute migrate_tenants
         call_command("migrate_tenants")
+
+
+@pytest.mark.django_db
+class TestBillingAndTrialFlow:
+    def setup_method(self):
+        self.factory = RequestFactory()
+        self.middleware = TenantMiddleware(
+            lambda req: JsonResponse({"status": "success"})
+        )
+        # Create an expired Tenant with no Stripe subscription
+        self.expired_tenant = Tenant.objects.create(
+            company_name="Expired Tenant Ltd",
+            trade_name="Expired Brand",
+            cnpj="88.888.888/0008-88",
+            subdomain="expiredbrand",
+            schema_name="tenant_expiredbrand",
+            trial_ends_at=timezone.now() - timedelta(days=1),
+        )
+
+    def test_expired_trial_redirects_templates(self):
+        # Template view HTML request to a protected path
+        request = self.factory.get("/dashboard/", HTTP_HOST="expiredbrand.localhost")
+        request.headers = {"accept": "text/html"}
+        
+        response = self.middleware(request)
+        assert response.status_code == 302
+        assert "/billing/" in response.url
+
+    def test_expired_trial_blocks_api_json(self):
+        # API/JSON request
+        request = self.factory.get("/api/v1/items/", HTTP_HOST="expiredbrand.localhost")
+        request.headers = {"accept": "application/json"}
+        
+        response = self.middleware(request)
+        assert response.status_code == 403
+        assert b"Trial period expired" in response.content
+
+    def test_stripe_webhook_provisions_subscription(self):
+        from django.test import Client
+        c = Client()
+        
+        # Webhook payload for checkout completed
+        payload = {
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "client_reference_id": "expiredbrand",
+                    "subscription": "sub_test_checkout123"
+                }
+            }
+        }
+        
+        response = c.post(
+            "/stripe/webhook/",
+            data=json.dumps(payload),
+            content_type="application/json"
+        )
+        assert response.status_code == 200
+        
+        # Verify tenant subscription state was updated
+        self.expired_tenant.refresh_from_db()
+        assert self.expired_tenant.stripe_subscription_id == "sub_test_checkout123"
+        assert self.expired_tenant.plan == "pro"
+

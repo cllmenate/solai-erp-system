@@ -3,6 +3,8 @@ import json
 
 from django.db import connection
 from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.utils import timezone
 
 from apps.core.models import Tenant
 
@@ -60,12 +62,25 @@ class TenantMiddleware:
     def __call__(self, request):
         path = request.path
 
-        # 1. Allow static, media and admin routes to default to public schema
-        if (
-            path.startswith("/admin/")
-            or path.startswith("/static/")
-            or path.startswith("/media/")
-        ):
+        # 1. Allow static, media, admin and public Stripe paths to public schema
+        public_prefixes = [
+            "/admin/",
+            "/static/",
+            "/media/",
+            "/stripe/webhook/",
+            "/stripe/success/",
+            "/stripe/cancel/",
+            "/billing/",
+            "/api/stripe/webhook/",
+        ]
+        
+        is_public = False
+        for prefix in public_prefixes:
+            if path.startswith(prefix):
+                is_public = True
+                break
+
+        if is_public:
             set_tenant_schema("public")
             request.tenant = None
             return self.get_response(request)
@@ -106,6 +121,30 @@ class TenantMiddleware:
         if tenant:
             request.tenant = tenant
             set_tenant_schema(tenant.schema_name)
+            
+            # Check trial status and Stripe subscription
+            # Block access if trial expired and stripe_subscription_id is empty
+            if (
+                tenant.trial_ends_at < timezone.now()
+                and not tenant.stripe_subscription_id
+            ):
+                # JSON/API requests return 403. Otherwise redirect.
+                is_api = (
+                    path.startswith("/api/")
+                    or request.headers.get("accept", "").startswith("application/json")
+                )
+                if is_api:
+                    return JsonResponse(
+                        {
+                            "error": (
+                                "Trial period expired. "
+                                "Active Stripe subscription required."
+                            )
+                        },
+                        status=403,
+                    )
+                # Redirect to billing warning page
+                return redirect("/billing/?subdomain=" + tenant.subdomain)
         else:
             # Allow root landing page to be accessed on the public schema
             if path == "/" or path == "/favicon.ico":
@@ -116,3 +155,4 @@ class TenantMiddleware:
 
         response = self.get_response(request)
         return response
+
