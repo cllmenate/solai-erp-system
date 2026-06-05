@@ -1,0 +1,63 @@
+{% extends "commercial/base_dashboard.html" %}
+
+{% block title %}Marcas - SolAI ERP{% endblock %}
+
+{% block page_title %}Marcas de Itens{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-sm border border-slate-200 shadow-sm">
+    <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Marcas Cadastradas</h3>
+        <a href="{% url 'brand_create' %}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-sm text-white bg-brand-600 hover:bg-brand-700 transition-colors shadow-sm">
+            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Nova Marca
+        </a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
+                    <th class="py-3.5 px-6">Nome</th>
+                    <th class="py-3.5 px-6">Site</th>
+                    <th class="py-3.5 px-6">Descrição</th>
+                    <th class="py-3.5 px-6 text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-sm">
+                {% for brand in brands %}
+                    <tr class="hover:bg-slate-50/55 transition-colors">
+                        <td class="py-4 px-6 font-semibold text-slate-800">{{ brand.name }}</td>
+                        <td class="py-4 px-6">
+                            {% if brand.website %}
+                                <a href="{{ brand.website }}" target="_blank" class="text-brand-600 hover:underline font-medium">{{ brand.website }}</a>
+                            {% else %}
+                                <span class="text-slate-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-6 text-slate-500">{{ brand.description|default:"-" }}</td>
+                        <td class="py-4 px-6 text-center whitespace-nowrap">
+                            <div class="flex items-center justify-center space-x-3">
+                                <a href="{% url 'brand_edit' brand.id %}" class="text-blue-600 hover:text-blue-900 px-2 py-1 rounded-sm hover:bg-blue-50 transition-all font-medium">
+                                    Editar
+                                </a>
+                                <a href="{% url 'brand_delete' brand.id %}" onclick="return confirm('Tem certeza que deseja desativar esta marca?')" class="text-rose-600 hover:text-rose-900 px-2 py-1 rounded-sm hover:bg-rose-50 transition-all font-medium">
+                                    Excluir
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="py-8 px-6 text-center text-slate-500">
+                            Nenhuma marca cadastrada. Clique em "Nova Marca" para começar.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

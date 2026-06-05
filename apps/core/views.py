@@ -1,0 +1,385 @@
+from django.contrib import messages
+from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.core.signing import BadSignature, SignatureExpired, dumps, loads
+from django.db import connection
+from django.http import Http404
+from django.shortcuts import redirect, render
+
+from apps.core.models import Tenant
+from apps.core.services import provision_tenant
+
+
+def login_view(request):
+    # SSO auto-login via one-time token on subdomain
+    token = request.GET.get("token")
+    if token:
+        try:
+            data = loads(token, salt="public-login-salt", max_age=20)
+            token_subdomain = data["subdomain"]
+            user_id = data["user_id"]
+            
+            if getattr(request, "tenant", None) is not None and request.tenant.subdomain == token_subdomain:
+                user_model = get_user_model()
+                user = user_model.objects.get(id=user_id)
+                if user.is_active:
+                    login(request, user, backend="apps.core.auth_backends.EmailOrUsernameBackend")
+                    messages.success(request, f"Bem-vindo de volta, {user.username}!")
+                    return redirect("/")
+        except Exception:
+            messages.error(request, "O token de login expirou ou é inválido.")
+            return redirect("login")
+
+    if request.user.is_authenticated:
+        if getattr(request, "tenant", None) is not None:
+            return redirect("/")
+        logout(request)
+
+    if request.method == "POST":
+        username_or_email = request.POST.get("username_or_email")
+        password = request.POST.get("password")
+        subdomain = request.POST.get("subdomain")
+
+        # If no tenant context exists (accessing from base domain)
+        if getattr(request, "tenant", None) is None:
+            if not subdomain:
+                messages.error(request, "O subdomínio é obrigatório.")
+                return render(request, "core/login.html")
+            try:
+                tenant = Tenant.objects.get(subdomain=subdomain, is_active=True)
+            except Tenant.DoesNotExist:
+                messages.error(request, "Subdomínio não encontrado ou inativo.")
+                return render(request, "core/login.html")
+
+            # Temporarily switch search path to tenant's schema for authentication
+            db_engine = connection.settings_dict.get("ENGINE", "")
+            if "sqlite" not in db_engine:
+                with connection.cursor() as cursor:
+                    cursor.execute(f"SET search_path TO {tenant.schema_name}, public")
+
+            user = authenticate(request, username=username_or_email, password=password)
+
+            # Reset connection path to public if auth fails so public context is restored
+            if "sqlite" not in db_engine and user is None:
+                with connection.cursor() as cursor:
+                    cursor.execute("SET search_path TO public")
+
+            if user is not None:
+                if user.is_active:
+                    login_token = dumps(
+                        {"user_id": str(user.id), "subdomain": subdomain},
+                        salt="public-login-salt"
+                    )
+                    host_parts = request.get_host().split(":")
+                    port = f":{host_parts[1]}" if len(host_parts) > 1 else ""
+                    base_domain = host_parts[0]
+                    if base_domain.startswith("www."):
+                        base_domain = base_domain[4:]
+                    
+                    if base_domain in ("localhost", "127.0.0.1"):
+                        redirect_url = f"http://{subdomain}.localhost{port}/auth/login/?token={login_token}"
+                    else:
+                        redirect_url = f"http://{subdomain}.{base_domain}{port}/auth/login/?token={login_token}"
+                    return redirect(redirect_url)
+                else:
+                    messages.error(request, "Esta conta está inativa.")
+            else:
+                messages.error(request, "Usuário, e-mail ou senha inválidos.")
+            
+            return render(request, "core/login.html")
+
+        # Authenticate under active subdomain/tenant schema
+        user = authenticate(request, username=username_or_email, password=password)
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                next_url = request.GET.get("next", "/")
+                return redirect(next_url)
+            else:
+                messages.error(request, "Esta conta está inativa. Se você acabou de se cadastrar, verifique o link de ativação.")
+        else:
+            messages.error(request, "Usuário, e-mail ou senha inválidos.")
+
+    return render(request, "core/login.html")
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("/")
+
+
+def signup_trial_view(request):
+    if request.user.is_authenticated:
+        return redirect("/")
+
+    if request.method == "POST":
+        company_name = request.POST.get("company_name")
+        trade_name = request.POST.get("trade_name")
+        cnpj = request.POST.get("cnpj")
+        subdomain = request.POST.get("subdomain")
+        admin_username = request.POST.get("username")
+        admin_email = request.POST.get("email")
+
+        # Basic validations
+        if not all([company_name, trade_name, cnpj, subdomain, admin_username, admin_email]):
+            messages.error(request, "Todos os campos são obrigatórios.")
+            return render(request, "core/signup.html")
+
+        # Let's ensure subdomain is unique in public schema
+        # We need to make sure we query Tenant in public schema
+        db_engine = connection.settings_dict.get("ENGINE", "")
+        if "sqlite" not in db_engine:
+            with connection.cursor() as cursor:
+                cursor.execute("SET search_path TO public")
+
+        if Tenant.objects.filter(subdomain=subdomain).exists():
+            messages.error(request, "Este subdomínio já está em uso.")
+            return render(request, "core/signup.html")
+
+        if Tenant.objects.filter(cnpj=cnpj).exists():
+            messages.error(request, "Este CNPJ já está cadastrado.")
+            return render(request, "core/signup.html")
+
+        schema_name = f"tenant_{subdomain.replace('-', '_')}"
+
+        try:
+            # Provision tenant with inactive admin (password=None)
+            provision_tenant(
+                company_name=company_name,
+                trade_name=trade_name,
+                cnpj=cnpj,
+                subdomain=subdomain,
+                schema_name=schema_name,
+                admin_username=admin_username,
+                admin_email=admin_email,
+                admin_password=None,
+            )
+
+            # Generate set password token
+            token = dumps(
+                {"subdomain": subdomain, "username": admin_username},
+                salt="set-password-salt"
+            )
+
+            # Redirect to success page showing the link
+            return redirect(f"/auth/signup-success/?token={token}")
+
+        except Exception as e:
+            messages.error(request, f"Erro ao criar conta trial: {e}")
+
+    return render(request, "core/signup.html")
+
+
+def signup_success_view(request):
+    token = request.GET.get("token")
+    if not token:
+        return redirect("/")
+    
+    # We construct the absolute URL link for MVP password setup
+    host = request.get_host()
+    # If the user is on localhost:8000, keep it.
+    activation_link = f"http://{host}/auth/set-password/{token}/"
+    
+    return render(request, "core/signup_success.html", {"activation_link": activation_link})
+
+
+def set_password_view(request, token):
+    try:
+        data = loads(token, salt="set-password-salt", max_age=86400)  # 24h
+        subdomain = data["subdomain"]
+        username = data["username"]
+    except (SignatureExpired, BadSignature):
+        messages.error(request, "O link de definição de senha expirou ou é inválido.")
+        return render(request, "core/set_password_error.html")
+
+    # Set connection search path to this tenant's schema to fetch the inactive user
+    db_engine = connection.settings_dict.get("ENGINE", "")
+    if "sqlite" not in db_engine:
+        try:
+            tenant = Tenant.objects.get(subdomain=subdomain)
+            with connection.cursor() as cursor:
+                cursor.execute(f"SET search_path TO {tenant.schema_name}, public")
+        except Tenant.DoesNotExist as err:
+            raise Http404("Tenant não encontrado") from err
+
+    user_model = get_user_model()
+    try:
+        user = user_model.objects.get(username=username)
+    except user_model.DoesNotExist as err:
+        raise Http404("Usuário não encontrado no tenant.") from err
+
+    if request.method == "POST":
+        password = request.POST.get("password")
+        password_confirm = request.POST.get("password_confirm")
+
+        if not password or password != password_confirm:
+            messages.error(request, "As senhas não coincidem ou são inválidas.")
+        else:
+            user.set_password(password)
+            user.is_active = True
+            user.save()
+
+            # Automatically login
+            # We must pass backend argument because we have multiple auth backends
+            login(request, user, backend="apps.core.auth_backends.EmailOrUsernameBackend")
+            messages.success(request, "Senha definida com sucesso! Bem-vindo.")
+            
+            # Redirect to the tenant-specific subdomain dashboard
+            # E.g. http://subdomain.localhost:8000/assets/items/
+            host_parts = request.get_host().split(":")
+            port = f":{host_parts[1]}" if len(host_parts) > 1 else ""
+            base_domain = host_parts[0]
+            if base_domain.startswith("www."):
+                base_domain = base_domain[4:]
+            
+            # If we're already on a subdomain or just localhost
+            if base_domain == "localhost" or base_domain == "127.0.0.1":
+                redirect_url = f"http://{subdomain}.localhost{port}/"
+            else:
+                redirect_url = f"http://{subdomain}.{base_domain}{port}/"
+            
+            return redirect(redirect_url)
+
+    return render(request, "core/set_password.html", {"username": username, "subdomain": subdomain})
+
+
+def password_recovery_request_view(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        
+        # To recover, we need to know which schema/tenant the user belongs to.
+        # If there is a subdomain in the host, we check the current schema.
+        # Otherwise we search across all schemas?
+        # Standard approach: if they recover from demo.localhost:8000, we search in demo schema.
+        # If they recover from landing page, we ask for subdomain or look up public (which won't have it).
+        # Let's search inside the current active tenant schema resolved by middleware.
+        # If no tenant context is resolved, we ask them to use the subdomain-specific login page to recover.
+        if not hasattr(request, "tenant") or request.tenant is None:
+            messages.error(request, "Por favor, acesse a página de login da sua empresa para recuperar a senha (ex: sua-empresa.solai.com.br/auth/recovery/).")
+            return render(request, "core/recovery_request.html")
+
+        user_model = get_user_model()
+        try:
+            user = user_model.objects.get(email=email)
+            token = dumps(
+                {"subdomain": request.tenant.subdomain, "username": user.username, "email": email},
+                salt="password-recovery-salt"
+            )
+            host = request.get_host()
+            recovery_link = f"http://{host}/auth/recovery/confirm/{token}/"
+            return render(request, "core/recovery_success.html", {"recovery_link": recovery_link})
+        except user_model.DoesNotExist:
+            # For security, we can display success even if user not found, but for MVP let's be explicit
+            messages.error(request, "E-mail não encontrado nesta empresa.")
+
+    return render(request, "core/recovery_request.html")
+
+
+def password_recovery_confirm_view(request, token):
+    try:
+        data = loads(token, salt="password-recovery-salt", max_age=3600)  # 1 hour
+        subdomain = data["subdomain"]
+        username = data["username"]
+    except (SignatureExpired, BadSignature):
+        messages.error(request, "O link de recuperação expirou ou é inválido.")
+        return render(request, "core/set_password_error.html")
+
+    db_engine = connection.settings_dict.get("ENGINE", "")
+    if "sqlite" not in db_engine:
+        try:
+            tenant = Tenant.objects.get(subdomain=subdomain)
+            with connection.cursor() as cursor:
+                cursor.execute(f"SET search_path TO {tenant.schema_name}, public")
+        except Tenant.DoesNotExist as err:
+            raise Http404("Tenant não encontrado") from err
+
+    user_model = get_user_model()
+    try:
+        user = user_model.objects.get(username=username)
+    except user_model.DoesNotExist as err:
+        raise Http404("Usuário não encontrado.") from err
+
+    if request.method == "POST":
+        password = request.POST.get("password")
+        password_confirm = request.POST.get("password_confirm")
+
+        if not password or password != password_confirm:
+            messages.error(request, "As senhas não coincidem ou são inválidas.")
+        else:
+            user.set_password(password)
+            user.is_active = True
+            user.save()
+
+            login(request, user, backend="apps.core.auth_backends.EmailOrUsernameBackend")
+            messages.success(request, "Sua senha foi redefinida com sucesso.")
+            return redirect("/")
+
+    return render(request, "core/recovery_confirm.html", {"username": username})
+
+
+def invite_create_view(request):
+    # Only active superuser or admin role of the active tenant can generate invites
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return redirect("/")
+
+    if request.method == "POST":
+        email = request.POST.get("email")
+        if not email:
+            messages.error(request, "E-mail do convidado é obrigatório.")
+        else:
+            token = dumps(
+                {"subdomain": request.tenant.subdomain, "email": email},
+                salt="invite-salt"
+            )
+            host = request.get_host()
+            invite_link = f"http://{host}/auth/invite/accept/{token}/"
+            return render(request, "core/invite_created.html", {"invite_link": invite_link, "email": email})
+
+    return render(request, "core/invite_create.html")
+
+
+def invite_accept_view(request, token):
+    try:
+        data = loads(token, salt="invite-salt", max_age=604800)  # 7 days
+        subdomain = data["subdomain"]
+        email = data["email"]
+    except (SignatureExpired, BadSignature):
+        messages.error(request, "O convite expirou ou é inválido.")
+        return render(request, "core/set_password_error.html")
+
+    db_engine = connection.settings_dict.get("ENGINE", "")
+    tenant = None
+    if "sqlite" not in db_engine:
+        try:
+            tenant = Tenant.objects.get(subdomain=subdomain)
+            with connection.cursor() as cursor:
+                cursor.execute(f"SET search_path TO {tenant.schema_name}, public")
+        except Tenant.DoesNotExist as err:
+            raise Http404("Tenant não encontrado") from err
+    else:
+        tenant = Tenant.objects.first()
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        full_name = request.POST.get("full_name")
+        password = request.POST.get("password")
+        password_confirm = request.POST.get("password_confirm")
+
+        user_model = get_user_model()
+        if user_model.objects.filter(username=username).exists():
+            messages.error(request, "Este nome de usuário já está em uso nesta empresa.")
+        elif not password or password != password_confirm:
+            messages.error(request, "As senhas não coincidem ou são inválidas.")
+        else:
+            user = user_model.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                full_name=full_name,
+                tenant=tenant,
+                is_active=True
+            )
+            login(request, user, backend="apps.core.auth_backends.EmailOrUsernameBackend")
+            messages.success(request, "Cadastro concluído! Bem-vindo.")
+            return redirect("/")
+
+    return render(request, "core/invite_accept.html", {"email": email, "subdomain": subdomain})

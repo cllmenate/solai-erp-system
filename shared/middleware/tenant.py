@@ -62,40 +62,15 @@ class TenantMiddleware:
     def __call__(self, request):
         path = request.path
 
-        # 1. Allow static, media, admin and public Stripe paths to public schema
-        public_prefixes = [
-            "/admin/",
-            "/static/",
-            "/media/",
-            "/stripe/webhook/",
-            "/stripe/success/",
-            "/stripe/cancel/",
-            "/billing/",
-            "/api/stripe/webhook/",
-        ]
-        
-        is_public = False
-        for prefix in public_prefixes:
-            if path.startswith(prefix):
-                is_public = True
-                break
-
-        if is_public:
-            set_tenant_schema("public")
-            request.tenant = None
-            return self.get_response(request)
-
-        # 2. Try to resolve tenant from JWT/Auth header
+        # 1. Resolve tenant from JWT or Subdomain first
         tenant_id = None
         auth_header = request.headers.get("Authorization")
         if auth_header:
             tenant_id = get_tenant_id_from_jwt(auth_header)
 
-        # Fallback to X-Tenant-ID header for development/tests
         if not tenant_id:
             tenant_id = request.headers.get("X-Tenant-ID")
 
-        # 3. Resolve tenant from subdomain
         host = request.get_host().split(":")[0]
         subdomain = get_subdomain_from_host(host)
 
@@ -123,12 +98,10 @@ class TenantMiddleware:
             set_tenant_schema(tenant.schema_name)
             
             # Check trial status and Stripe subscription
-            # Block access if trial expired and stripe_subscription_id is empty
             if (
                 tenant.trial_ends_at < timezone.now()
                 and not tenant.stripe_subscription_id
             ):
-                # JSON/API requests return 403. Otherwise redirect.
                 is_api = (
                     path.startswith("/api/")
                     or request.headers.get("accept", "").startswith("application/json")
@@ -143,16 +116,35 @@ class TenantMiddleware:
                         },
                         status=403,
                     )
-                # Redirect to billing warning page
                 return redirect("/billing/?subdomain=" + tenant.subdomain)
         else:
-            # Allow root landing page to be accessed on the public schema
-            if path == "/" or path == "/favicon.ico":
+            # If no tenant, check if the path is a public route on the public schema
+            public_prefixes = [
+                "/admin/",
+                "/static/",
+                "/media/",
+                "/stripe/webhook/",
+                "/stripe/success/",
+                "/stripe/cancel/",
+                "/billing/",
+                "/api/stripe/webhook/",
+                "/auth/",
+            ]
+            is_public = path == "/" or path == "/favicon.ico"
+            for prefix in public_prefixes:
+                if path.startswith(prefix):
+                    is_public = True
+                    break
+
+            if is_public:
                 set_tenant_schema("public")
                 request.tenant = None
             else:
                 return JsonResponse({"error": "Tenant context required"}, status=403)
 
         response = self.get_response(request)
+        if hasattr(request, "user") and request.user.is_authenticated:
+            response["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+            response["Pragma"] = "no-cache"
+            response["Expires"] = "0"
         return response
-

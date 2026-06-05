@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Recuperação de Senha — SolAI ERP{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-logo">SolAI<span>.</span>ERP</div>
+        <h2 style="text-align: center; margin-bottom: 2rem; font-family: var(--font-display); font-size: 1.4rem;">Recuperar Senha</h2>
+
+        {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="email">E-mail Cadastrado</label>
+                <input type="email" name="email" id="email" class="form-control" placeholder="ex: admin@empresa.com" required autocomplete="email">
+            </div>
+
+            <button type="submit" class="btn-primary" style="margin-top: 1rem;">Solicitar Link de Recuperação</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Lembrou a senha? <a href="{% url 'login' %}">Voltar para o Login</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

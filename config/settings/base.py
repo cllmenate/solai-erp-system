@@ -34,6 +34,8 @@ INSTALLED_APPS = [
     "simple_history",
     # Local apps (will be added as modules are created)
     "apps.core",
+    "apps.commercial",
+    "apps.assets",
 ]
 
 MIDDLEWARE = [
@@ -89,6 +91,7 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = "core.User"
 AUTHENTICATION_BACKENDS = [
     "apps.core.auth_backends.EmailOrUsernameBackend",
+    "apps.core.auth_backends.RolePermissionBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
@@ -113,4 +116,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STRIPE_PUBLISHABLE_KEY = env("STRIPE_PUBLISHABLE_KEY", default="pk_test_placeholder")
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="sk_test_placeholder")
 STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="whsec_placeholder")
+
+# Authentication Redirects
+LOGIN_URL = "/auth/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
 

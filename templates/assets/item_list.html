@@ -1,0 +1,121 @@
+{% extends "commercial/base_dashboard.html" %}
+
+{% block title %}Itens e Estoque - SolAI ERP{% endblock %}
+
+{% block page_title %}Catálogo de Itens / Ativos{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-sm border border-slate-200 shadow-sm">
+    <!-- Header Controls -->
+    <div class="p-6 border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <form method="GET" action="{% url 'item_list' %}" class="flex flex-1 flex-col sm:flex-row gap-3">
+            <div class="relative flex-1 max-w-md">
+                <input 
+                    type="text" 
+                    name="search" 
+                    value="{{ search_query }}"
+                    placeholder="Buscar por SKU, código de barras ou nome..."
+                    class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm"
+                >
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
+            
+            <select 
+                name="type" 
+                onchange="this.form.submit()"
+                class="border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm bg-white"
+            >
+                <option value="">Todos os tipos</option>
+                <option value="input" {% if item_type == 'input' %}selected{% endif %}>Insumos</option>
+                <option value="product" {% if item_type == 'product' %}selected{% endif %}>Produtos</option>
+                <option value="asset" {% if item_type == 'asset' %}selected{% endif %}>Ativos</option>
+                <option value="consumable" {% if item_type == 'consumable' %}selected{% endif %}>Consumo</option>
+            </select>
+            
+            {% if search_query or item_type %}
+                <a href="{% url 'item_list' %}" class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 rounded-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
+                    Limpar Filtros
+                </a>
+            {% endif %}
+        </form>
+
+        <a href="{% url 'item_create' %}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-sm text-white bg-brand-600 hover:bg-brand-700 transition-colors shadow-sm">
+            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Novo Item
+        </a>
+    </div>
+
+    <!-- Items Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
+                    <th class="py-3.5 px-6">SKU / Cód. Barras</th>
+                    <th class="py-3.5 px-6">Nome / Descrição</th>
+                    <th class="py-3.5 px-6">Tipo</th>
+                    <th class="py-3.5 px-6">Modelo / Marca</th>
+                    <th class="py-3.5 px-6 text-right">Aquisição / Venda</th>
+                    <th class="py-3.5 px-6 text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-sm">
+                {% for item in items %}
+                    <tr class="hover:bg-slate-50/55 transition-colors">
+                        <td class="py-4 px-6 whitespace-nowrap">
+                            <span class="font-mono font-medium text-slate-900 block">{{ item.sku }}</span>
+                            <span class="text-xs text-slate-500 block font-mono">{{ item.barcode }}</span>
+                        </td>
+                        <td class="py-4 px-6">
+                            <span class="font-semibold text-slate-800 block">{{ item.name }}</span>
+                            {% if item.description %}
+                                <span class="text-xs text-slate-500 truncate max-w-xs block">{{ item.description }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-6 whitespace-nowrap">
+                            {% if item.item_type == 'input' %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-800 border border-blue-100">Insumo</span>
+                            {% elif item.item_type == 'product' %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-100">Produto</span>
+                            {% elif item.item_type == 'asset' %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-100">Ativo</span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200">Consumo</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-6 whitespace-nowrap">
+                            <span class="text-slate-800 block font-medium">{{ item.model.name }}</span>
+                            <span class="text-xs text-slate-500 block">{{ item.model.brand.name }}</span>
+                        </td>
+                        <td class="py-4 px-6 text-right whitespace-nowrap font-medium">
+                            <span class="text-slate-500 text-xs block">R$ {{ item.acquisition_price }}</span>
+                            <span class="text-brand-700 block">R$ {{ item.sale_price }}</span>
+                        </td>
+                        <td class="py-4 px-6 text-center whitespace-nowrap">
+                            <div class="flex items-center justify-center space-x-2">
+                                <a href="{% url 'item_detail' item.id %}" class="text-slate-600 hover:text-slate-900 px-2 py-1 rounded-sm hover:bg-slate-100 transition-all" title="Ver Detalhes">
+                                    Visualizar
+                                </a>
+                                <a href="{% url 'item_edit' item.id %}" class="text-blue-600 hover:text-blue-900 px-2 py-1 rounded-sm hover:bg-blue-50 transition-all" title="Editar">
+                                    Editar
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-8 px-6 text-center text-slate-500">
+                            Nenhum item cadastrado. Clique em "Novo Item" para começar.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

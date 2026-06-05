@@ -1,0 +1,176 @@
+{% extends 'commercial/base_dashboard.html' %}
+
+{% block title %}{% if partner %}Editar Parceiro{% else %}Novo Parceiro{% endif %} | SolAI ERP{% endblock %}
+{% block page_title %}{% if partner %}Editar Parceiro{% else %}Novo Parceiro{% endif %}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% if partner %}{% url 'partner_detail' partner.id %}{% else %}{% url 'partner_list' %}{% endif %}" class="inline-flex items-center text-sm text-slate-500 hover:text-slate-700 transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        Cancelar e Voltar
+    </a>
+</div>
+
+<form method="POST" class="space-y-8">
+    {% csrf_token %}
+    
+    <!-- Partner General Info -->
+    <div class="bg-white border border-slate-200 shadow-sm rounded-sm p-8 space-y-6">
+        <h3 class="text-lg font-bold font-outfit text-slate-800 border-b border-slate-100 pb-3">Informações Gerais</h3>
+        
+        <!-- Types Checkboxes -->
+        <div class="space-y-2">
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Tipo de Parceiro (Múltipla Escolha)</label>
+            <div class="flex flex-wrap gap-6 text-sm">
+                <label class="inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox" name="is_customer" class="w-4.5 h-4.5 text-brand-600 border-slate-300 rounded-sm focus:ring-brand-500" {% if partner.is_customer %}checked{% endif %}>
+                    <span class="ml-2 text-slate-700 font-medium">Cliente</span>
+                </label>
+                <label class="inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox" name="is_supplier" class="w-4.5 h-4.5 text-brand-600 border-slate-300 rounded-sm focus:ring-brand-500" {% if partner.is_supplier %}checked{% endif %}>
+                    <span class="ml-2 text-slate-700 font-medium">Fornecedor</span>
+                </label>
+                <label class="inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox" name="is_carrier" class="w-4.5 h-4.5 text-brand-600 border-slate-300 rounded-sm focus:ring-brand-500" {% if partner.is_carrier %}checked{% endif %}>
+                    <span class="ml-2 text-slate-700 font-medium">Transportadora</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Legal Name -->
+            <div class="space-y-1">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Razão Social / Nome Completo *</label>
+                <input type="text" name="legal_name" value="{{ partner.legal_name }}" required 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+            </div>
+
+            <!-- Trade Name -->
+            <div class="space-y-1">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Nome Fantasia / Apelido</label>
+                <input type="text" name="trade_name" value="{{ partner.trade_name|default:'' }}" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+            </div>
+
+            <!-- Document -->
+            <div class="space-y-1">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">CPF / CNPJ *</label>
+                <input type="text" name="document" value="{{ partner.document }}" required placeholder="Somente números..."
+                       class="w-full px-3 py-2 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+            </div>
+
+            <!-- Person Type -->
+            <div class="space-y-1">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Tipo de Pessoa *</label>
+                <select name="person_type" required class="w-full px-3 py-2 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+                    <option value="company" {% if partner.person_type == 'company' %}selected{% endif %}>Pessoa Jurídica (PJ)</option>
+                    <option value="individual" {% if partner.person_type == 'individual' %}selected{% endif %}>Pessoa Física (PF)</option>
+                </select>
+            </div>
+
+            <!-- State Registration -->
+            <div class="space-y-1">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Inscrição Estadual</label>
+                <input type="text" name="state_registration" value="{{ partner.state_registration|default:'' }}" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+            </div>
+
+            <!-- Municipal Registration -->
+            <div class="space-y-1">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Inscrição Municipal</label>
+                <input type="text" name="municipal_registration" value="{{ partner.municipal_registration|default:'' }}" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+            </div>
+
+            <!-- Website -->
+            <div class="space-y-1 col-span-1 md:col-span-2">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Website (URL)</label>
+                <input type="url" name="website" value="{{ partner.website|default:'' }}" placeholder="https://exemplo.com"
+                       class="w-full px-3 py-2 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+            </div>
+
+            <!-- Integration Code -->
+            <div class="space-y-1">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Código de Integração</label>
+                <input type="text" name="integration_code" value="{{ partner.integration_code|default:'' }}" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+            </div>
+        </div>
+    </div>
+
+    <!-- Contacts section -->
+    <div class="bg-white border border-slate-200 shadow-sm rounded-sm p-8 space-y-6">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <h3 class="text-lg font-bold font-outfit text-slate-800">Contatos</h3>
+            <button type="button" 
+                    id="add-contact-btn"
+                    hx-get="{% url 'htmx_contact_row' %}" 
+                    hx-target="#contacts-container" 
+                    hx-swap="beforeend"
+                    class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold py-1.5 px-3 rounded-sm border border-slate-300 transition-all cursor-pointer active:scale-95">
+                + Adicionar Contato
+            </button>
+        </div>
+
+        <div id="contacts-container" class="space-y-4">
+            {% if partner %}
+                {% for contact in partner.contacts.all %}
+                    {% include 'commercial/partials/contact_row.html' with index=forloop.counter0 contact=contact %}
+                {% endfor %}
+            {% else %}
+                {% include 'commercial/partials/contact_row.html' with index=0 %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Addresses section -->
+    <div class="bg-white border border-slate-200 shadow-sm rounded-sm p-8 space-y-6">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <h3 class="text-lg font-bold font-outfit text-slate-800">Endereços</h3>
+            <button type="button" 
+                    id="add-address-btn"
+                    hx-get="{% url 'htmx_address_row' %}" 
+                    hx-target="#addresses-container" 
+                    hx-swap="beforeend"
+                    class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold py-1.5 px-3 rounded-sm border border-slate-300 transition-all cursor-pointer active:scale-95">
+                + Adicionar Endereço
+            </button>
+        </div>
+
+        <div id="addresses-container" class="space-y-6">
+            {% if partner %}
+                {% for address in partner.addresses.all %}
+                    {% include 'commercial/partials/address_row.html' with index=forloop.counter0 address=address %}
+                {% endfor %}
+            {% else %}
+                {% include 'commercial/partials/address_row.html' with index=0 %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end space-x-4">
+        <a href="{% if partner %}{% url 'partner_detail' partner.id %}{% else %}{% url 'partner_list' %}{% endif %}" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-semibold py-2.5 px-6 rounded-sm transition-all">
+            Cancelar
+        </a>
+        <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold py-2.5 px-8 rounded-sm transition-all duration-150 active:scale-95 shadow-md">
+            Salvar Parceiro
+        </button>
+    </div>
+</form>
+
+<script>
+    // Update indices dynamically when dynamic rows are added
+    document.body.addEventListener('htmx:configRequest', function(evt) {
+        if (evt.detail.trigger === 'add-contact-btn') {
+            const count = document.querySelectorAll('.contact-row').length;
+            evt.detail.parameters['index'] = count;
+        } else if (evt.detail.trigger === 'add-address-btn') {
+            const count = document.querySelectorAll('.address-row').length;
+            evt.detail.parameters['index'] = count;
+        }
+    });
+</script>
+{% endblock %}

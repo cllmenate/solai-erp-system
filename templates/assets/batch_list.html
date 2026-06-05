@@ -1,0 +1,78 @@
+{% extends "commercial/base_dashboard.html" %}
+
+{% block title %}Lotes - SolAI ERP{% endblock %}
+
+{% block page_title %}Gestão de Lotes de Estoque{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-sm border border-slate-200 shadow-sm">
+    <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Lotes Ativos</h3>
+        <a href="{% url 'batch_create' %}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-sm text-white bg-brand-600 hover:bg-brand-700 transition-colors shadow-sm">
+            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Novo Lote
+        </a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
+                    <th class="py-3.5 px-6">Código do Lote</th>
+                    <th class="py-3.5 px-6">Item / SKU</th>
+                    <th class="py-3.5 px-6">Validade / Fabricação</th>
+                    <th class="py-3.5 px-6 text-right">Qtd Total / Estoque</th>
+                    <th class="py-3.5 px-6 text-center">Status</th>
+                    <th class="py-3.5 px-6 text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-sm">
+                {% for batch in batches %}
+                    <tr class="hover:bg-slate-50/55 transition-colors">
+                        <td class="py-4 px-6 font-mono font-semibold text-slate-800">{{ batch.batch_code }}</td>
+                        <td class="py-4 px-6">
+                            <a href="{% url 'item_detail' batch.item.id %}" class="font-semibold text-slate-800 hover:underline block">{{ batch.item.name }}</a>
+                            <span class="text-xs text-slate-500 block font-mono">SKU: {{ batch.item.sku }}</span>
+                        </td>
+                        <td class="py-4 px-6 whitespace-nowrap">
+                            <span class="block">Val: <strong class="text-slate-700 font-semibold">{{ batch.expiry_date|date:"d/m/Y" }}</strong></span>
+                            <span class="text-xs text-slate-500 block">Fab: {{ batch.manufacture_date|date:"d/m/Y" }}</span>
+                        </td>
+                        <td class="py-4 px-6 text-right font-mono">
+                            <span class="block text-slate-500 text-xs">Total: {{ batch.total_quantity }}</span>
+                            <span class="block font-semibold text-slate-900">Em estoque: {{ batch.stock_quantity }}</span>
+                        </td>
+                        <td class="py-4 px-6 text-center whitespace-nowrap">
+                            {% if batch.status == 'active' %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-100">Ativo</span>
+                            {% elif batch.status == 'expired' %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-800 border border-rose-100 animate-pulse">Expirado</span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200">Descartado</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-6 text-center whitespace-nowrap">
+                            <div class="flex items-center justify-center space-x-3">
+                                <a href="{% url 'batch_edit' batch.id %}" class="text-blue-600 hover:text-blue-900 px-2 py-1 rounded-sm hover:bg-blue-50 transition-all font-medium">
+                                    Editar
+                                </a>
+                                <a href="{% url 'batch_delete' batch.id %}" onclick="return confirm('Tem certeza que deseja desativar este lote?')" class="text-rose-600 hover:text-rose-900 px-2 py-1 rounded-sm hover:bg-rose-50 transition-all font-medium">
+                                    Excluir
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-8 px-6 text-center text-slate-500">
+                            Nenhum lote cadastrado. Clique em "Novo Lote" para começar.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
