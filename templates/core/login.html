@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Login — SolAI ERP{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-logo">SolAI<span>.</span>ERP</div>
+
+        {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            {% if not request.tenant %}
+            <div class="form-group">
+                <label for="subdomain">Subdomínio (Workspace)</label>
+                <input type="text" name="subdomain" id="subdomain" class="form-control" placeholder="ex: minha-empresa" required autocomplete="off">
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="username_or_email">Usuário ou E-mail</label>
+                <input type="text" name="username_or_email" id="username_or_email" class="form-control" placeholder="ex: admin ou admin@empresa.com" required autocomplete="username" value="{{ request.GET.username_or_email|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" name="password" id="password" class="form-control" placeholder="Sua senha secreta" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn-primary">Entrar no Sistema</button>
+        </form>
+
+        <div class="auth-footer">
+            <p><a href="{% url 'password_recovery' %}">Esqueceu a senha?</a></p>
+            <p style="margin-top: 1rem;">Ainda não tem conta? <a href="{% url 'signup_trial' %}">Comece um trial gratuito</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

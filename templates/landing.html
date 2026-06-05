@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SolAI ERP — Sistema SaaS B2B Multi-Tenant Inteligente com agentes IA integrados e isolamento de schemas real por Tenant.">
+    <meta property="og:title" content="SolAI ERP — Sistema SaaS B2B Multi-Tenant Inteligente">
+    <meta property="og:description" content="O ERP SaaS B2B Multi-Tenant com agentes IA integrados ao core operacional e isolamento de schemas real por Tenant.">
     <title>SolAI ERP — Sistema SaaS B2B Multi-Tenant Inteligente</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -274,7 +277,7 @@
         <div class="logo">SolAI<span>.</span>ERP</div>
         <nav>
             <a href="#pricing">Planos</a>
-            <a href="/login/">Entrar</a>
+            <a href="{% url 'login' %}">Entrar</a>
         </nav>
     </header>
 
@@ -282,7 +285,7 @@
         <section class="hero">
             <h1>Gerenciamento total. <span>Inteligência Absoluta.</span></h1>
             <p>O ERP SaaS B2B Multi-Tenant com agentes IA integrados ao core operacional e isolamento de schemas real por Tenant.</p>
-            <a href="#pricing" class="cta-btn">Começar Trial de 14 Dias</a>
+            <a href="{% url 'signup_trial' %}" class="cta-btn">Começar Trial de 14 Dias</a>
         </section>
 
         <section id="pricing" class="pricing-section">

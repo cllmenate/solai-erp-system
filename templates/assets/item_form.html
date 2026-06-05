@@ -1,0 +1,178 @@
+{% extends "commercial/base_dashboard.html" %}
+
+{% block title %}
+    {% if item %}Editar Item - {{ item.name }}{% else %}Novo Item{% endif %} - SolAI ERP
+{% endblock %}
+
+{% block page_title %}
+    {% if item %}Editar Item{% else %}Cadastrar Novo Item{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-6">
+        <a href="{% if item %}{% url 'item_detail' item.id %}{% else %}{% url 'item_list' %}{% endif %}" class="inline-flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Cancelar e Voltar
+        </a>
+    </div>
+
+    <div class="bg-white rounded-sm border border-slate-200 shadow-sm p-8">
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Model Select -->
+                <div class="space-y-1.5">
+                    <label for="model" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Modelo *</label>
+                    <select 
+                        name="model" 
+                        id="model" 
+                        required
+                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm bg-white"
+                    >
+                        <option value="">Selecione um Modelo</option>
+                        {% for model in models %}
+                            <option value="{{ model.id }}" {% if item.model.id == model.id %}selected{% endif %}>
+                                {{ model.name }} (Marca: {{ model.brand.name }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Item Type -->
+                <div class="space-y-1.5">
+                    <label for="item_type" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Tipo de Item *</label>
+                    <select 
+                        name="item_type" 
+                        id="item_type" 
+                        required
+                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm bg-white"
+                    >
+                        <option value="">Selecione o Tipo</option>
+                        {% for val, label in item_types %}
+                            <option value="{{ val }}" {% if item.item_type == val %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- NCM -->
+                <div class="space-y-1.5">
+                    <label for="ncm" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Código NCM</label>
+                    <input 
+                        type="text" 
+                        name="ncm" 
+                        id="ncm" 
+                        value="{{ item.ncm|default:'' }}"
+                        placeholder="Ex: 3923.21.00"
+                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-mono"
+                    >
+                </div>
+
+                <!-- SKU -->
+                <div class="space-y-1.5">
+                    <label for="sku" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">SKU</label>
+                    <input 
+                        type="text" 
+                        name="sku" 
+                        id="sku" 
+                        value="{{ item.sku|default:'' }}"
+                        placeholder="Gerado automaticamente se vazio"
+                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-mono"
+                    >
+                </div>
+
+                <!-- Barcode -->
+                <div class="space-y-1.5">
+                    <label for="barcode" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Código de Barras</label>
+                    <input 
+                        type="text" 
+                        name="barcode" 
+                        id="barcode" 
+                        value="{{ item.barcode|default:'' }}"
+                        placeholder="Gerado automaticamente se vazio"
+                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-mono"
+                    >
+                </div>
+            </div>            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- Serial Number -->
+                <div class="space-y-1.5">
+                    <label for="serial_number" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Número de Série</label>
+                    <input 
+                        type="text" 
+                        name="serial_number" 
+                        id="serial_number" 
+                        value="{{ item.serial_number|default:'' }}"
+                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm"
+                    >
+                </div>
+
+                <!-- Acquisition Price -->
+                <div class="space-y-1.5">
+                    <label for="acquisition_price" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Preço de Aquisição (R$)</label>
+                    <input 
+                        type="number" 
+                        step="0.01"
+                        name="acquisition_price" 
+                        id="acquisition_price" 
+                        value="{{ item.acquisition_price|default:'0.00' }}"
+                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-semibold text-slate-700"
+                    >
+                </div>
+
+                <!-- Sale Price -->
+                <div class="space-y-1.5">
+                    <label for="sale_price" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Preço de Venda (R$)</label>
+                    <input 
+                        type="number" 
+                        step="0.01"
+                        name="sale_price" 
+                        id="sale_price" 
+                        value="{{ item.sale_price|default:'0.00' }}"
+                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-semibold text-brand-600"
+                    >
+                </div>
+
+                <!-- Minimum Stock -->
+                <div class="space-y-1.5">
+                    <label for="minimum_stock" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Estoque Mínimo</label>
+                    <input 
+                        type="number" 
+                        step="0.001"
+                        name="minimum_stock" 
+                        id="minimum_stock" 
+                        value="{{ item.minimum_stock|default:'0.000' }}"
+                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-semibold text-rose-600"
+                    >
+                </div>
+            </div>
+            <!-- Description -->
+            <div class="space-y-1.5">
+                <label for="description" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Descrição / Observações</label>
+                <textarea 
+                    name="description" 
+                    id="description" 
+                    rows="3"
+                    class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm"
+                >{{ item.description|default:'' }}</textarea>
+            </div>
+
+            <!-- Submit buttons -->
+            <div class="pt-4 border-t border-slate-200 flex justify-end space-x-3">
+                <button 
+                    type="submit" 
+                    class="inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-semibold rounded-sm text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-colors shadow-sm"
+                >
+                    Salvar Item
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

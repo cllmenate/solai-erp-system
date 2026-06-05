@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Convidar Administrador — SolAI ERP{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-logo">SolAI<span>.</span>ERP</div>
+        <h2 style="text-align: center; margin-bottom: 2rem; font-family: var(--font-display); font-size: 1.4rem;">Convidar Administrador</h2>
+        
+        <p style="color: #888; font-size: 0.95rem; margin-bottom: 1.5rem; text-align: center;">
+            Gere um link de convite único para adicionar um novo administrador ao tenant <strong>{{ request.tenant.trade_name }}</strong>.
+        </p>
+
+        {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="email">E-mail do Convidado</label>
+                <input type="email" name="email" id="email" class="form-control" placeholder="ex: colega@empresa.com" required autocomplete="email">
+            </div>
+
+            <button type="submit" class="btn-primary" style="margin-top: 1rem;">Gerar Link de Convite</button>
+        </form>
+
+        <div class="auth-footer">
+            <p><a href="/assets/items/">&larr; Voltar ao Painel</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

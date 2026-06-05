@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Trial de 14 Dias — SolAI ERP{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card" style="max-width: 600px;">
+        <div class="auth-logo">SolAI<span>.</span>ERP</div>
+        <h2 style="text-align: center; margin-bottom: 2rem; font-family: var(--font-display); font-size: 1.5rem;">Cadastre sua empresa e comece seu trial de 14 dias</h2>
+
+        {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <h3 style="margin-bottom: 1rem; color: var(--accent); font-family: var(--font-display); font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem;">Dados Corporativos</h3>
+
+            <div class="form-group">
+                <label for="company_name">Razão Social</label>
+                <input type="text" name="company_name" id="company_name" class="form-control" placeholder="ex: SolAI ERP Ltda" required>
+            </div>
+
+            <div class="form-group">
+                <label for="trade_name">Nome Fantasia</label>
+                <input type="text" name="trade_name" id="trade_name" class="form-control" placeholder="ex: SolAI ERP" required>
+            </div>
+
+            <div class="form-group">
+                <label for="cnpj">CNPJ</label>
+                <input type="text" name="cnpj" id="cnpj" class="form-control" placeholder="00.000.000/0000-00" required>
+            </div>
+
+            <div class="form-group">
+                <label for="subdomain">Subdomínio do Acesso (URL)</label>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="text" name="subdomain" id="subdomain" class="form-control" placeholder="sua-empresa" required style="flex: 1;">
+                    <span style="font-size: 0.95rem; color: #888; font-weight: bold;">.solai.com</span>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--accent); font-family: var(--font-display); font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem;">Configuração do Administrador</h3>
+
+            <div class="form-group">
+                <label for="username">Nome de Usuário</label>
+                <input type="text" name="username" id="username" class="form-control" placeholder="ex: admin" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-mail Corporativo</label>
+                <input type="email" name="email" id="email" class="form-control" placeholder="ex: admin@empresa.com" required autocomplete="email">
+            </div>
+
+            <button type="submit" class="btn-primary" style="margin-top: 1.5rem;">Criar Conta e Iniciar Trial</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Já tem uma conta? <a href="{% url 'login' %}">Acesse o painel</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
