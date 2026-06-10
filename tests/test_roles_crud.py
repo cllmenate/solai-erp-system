@@ -6,7 +6,7 @@ from django.contrib.auth.models import Permission
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.core.models import Role, Tenant
+from apps.core.models import Role, Sector, Tenant
 
 
 @pytest.mark.django_db
@@ -59,10 +59,15 @@ class TestRolesCRUD:
         self.change_perm = Permission.objects.get(content_type__app_label="core", codename="change_role")
         self.delete_perm = Permission.objects.get(content_type__app_label="core", codename="delete_role")
 
+        # Set up sectors
+        self.sector_a = Sector.objects.create(name="Setor A", tenant=self.tenant_a)
+        self.sector_b = Sector.objects.create(name="Setor B", tenant=self.tenant_b)
+
         # Create Admin Role for Tenant A
         self.role_admin_a = Role.objects.create(
             name="tenanta:Admin",
             tenant=self.tenant_a,
+            sector=self.sector_a,
             level=100,
             description="Administrador A",
             is_active=True
@@ -75,6 +80,7 @@ class TestRolesCRUD:
         self.role_normal_a = Role.objects.create(
             name="tenanta:Normal",
             tenant=self.tenant_a,
+            sector=self.sector_a,
             level=10,
             description="Normal A",
             is_active=True
@@ -86,6 +92,7 @@ class TestRolesCRUD:
         self.role_admin_b = Role.objects.create(
             name="tenantb:Admin",
             tenant=self.tenant_b,
+            sector=self.sector_b,
             level=100,
             description="Administrador B",
             is_active=True
@@ -119,6 +126,7 @@ class TestRolesCRUD:
             reverse("settings_role_create"),
             {
                 "name": "Novo Cargo",
+                "sector": self.sector_a.id,
                 "level": 50,
                 "description": "Novo cargo do tenant A",
                 "is_active": True
@@ -129,6 +137,7 @@ class TestRolesCRUD:
         new_role = Role.objects.get(name="tenanta:Novo Cargo", tenant=self.tenant_a)
         assert new_role.level == 50
         assert new_role.friendly_name == "Novo Cargo"
+        assert new_role.sector == self.sector_a
 
     def test_create_role_duplicate_name_same_tenant_fails(self, client):
         client.force_login(self.admin_a)
@@ -137,7 +146,8 @@ class TestRolesCRUD:
             reverse("settings_role_create"),
             {
                 "name": "Normal",
-                "level": 20,
+                "sector": self.sector_a.id,
+                "level": 10,
                 "description": "Duplicado",
                 "is_active": True
             },
@@ -155,7 +165,8 @@ class TestRolesCRUD:
             reverse("settings_role_create"),
             {
                 "name": "Normal",
-                "level": 20,
+                "sector": self.sector_b.id,
+                "level": 10,
                 "description": "Normal em B",
                 "is_active": True
             },
@@ -170,7 +181,8 @@ class TestRolesCRUD:
             reverse("settings_role_edit", args=[self.role_normal_a.id]),
             {
                 "name": "Normal Alterado",
-                "level": 15,
+                "sector": self.sector_a.id,
+                "level": 50,
                 "description": "Descrição alterada",
                 "is_active": True
             },
@@ -180,7 +192,7 @@ class TestRolesCRUD:
         self.role_normal_a.refresh_from_db()
         assert self.role_normal_a.name == "tenanta:Normal Alterado"
         assert self.role_normal_a.friendly_name == "Normal Alterado"
-        assert self.role_normal_a.level == 15
+        assert self.role_normal_a.level == 50
 
     def test_toggle_active_status(self, client):
         client.force_login(self.admin_a)
