@@ -64,19 +64,42 @@ def provision_tenant(
                 cursor.execute(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE")
         raise e
 
-    # Step 3: Create admin user in the schema
+    # Step 3: Create admin user and default role in the schema
     try:
+        from django.contrib.auth.models import Permission
+        from apps.core.models import Role
+        
         user_model = get_user_model()
         is_active = admin_password is not None
         
+        # Create default Administrador role for the tenant
+        admin_role, _ = Role.objects.get_or_create(
+            name=f"{tenant.subdomain}:Administrador",
+            tenant=tenant,
+            defaults={
+                "level": 100,
+                "description": "Administrador Geral do Tenant",
+                "is_active": True,
+            }
+        )
+        
+        # Assign roles management permissions
+        perms = Permission.objects.filter(
+            content_type__app_label="core",
+            codename__in=["add_role", "change_role", "delete_role", "view_role"]
+        )
+        admin_role.permissions.set(perms)
+        
         # We need to construct the superuser
-        user_model.objects.create_superuser(
+        admin_user = user_model.objects.create_superuser(
             username=admin_username,
             email=admin_email,
             password=admin_password,
             tenant=tenant,
             is_active=is_active,
         )
+        admin_user.role = admin_role
+        admin_user.save()
     except Exception as e:
         # Rollback schema and tenant on user creation failure
         if not is_sqlite:

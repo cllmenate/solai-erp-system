@@ -89,13 +89,25 @@ class Role(Group):
     )
     level = models.IntegerField(default=1)
     description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "role"
         verbose_name_plural = "roles"
 
+    @property
+    def friendly_name(self):
+        if self.name and ":" in self.name:
+            return self.name.split(":", 1)[1]
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if self.tenant and self.name and not self.name.startswith(f"{self.tenant.subdomain}:"):
+            self.name = f"{self.tenant.subdomain}:{self.name}"
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.name} (Tenant: {self.tenant})"
+        return self.friendly_name
 
 
 class UserManager(BaseUserManager):
