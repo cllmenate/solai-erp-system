@@ -8,6 +8,8 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
 
 
@@ -196,9 +198,6 @@ class UserPreferences(models.Model):
     def __str__(self):
         return f"Preferences for {self.user.username}"
 
-
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 @receiver(post_save, sender=User)
 def create_user_preferences(sender, instance, created, **kwargs):

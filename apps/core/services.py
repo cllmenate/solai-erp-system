@@ -67,6 +67,7 @@ def provision_tenant(
     # Step 3: Create admin user and default role in the schema
     try:
         from django.contrib.auth.models import Permission
+
         from apps.core.models import Role
         
         user_model = get_user_model()

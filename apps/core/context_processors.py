@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from apps.core.models import Role
+
 
 def role_warnings_context(request):
     if not request.user.is_authenticated:

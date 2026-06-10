@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.core.models import Tenant, UserPreferences
+from apps.core.models import Tenant
 
 
 @pytest.mark.django_db
@@ -67,7 +67,7 @@ class TestSettingsProfileView:
 
     def test_update_profile_duplicate_email(self, client):
         client.force_login(self.user)
-        response = client.post(
+        _response = client.post(
             reverse("settings_profile"),
             {
                 "action": "profile",
@@ -99,7 +99,7 @@ class TestSettingsProfileView:
 
     def test_change_password_incorrect_current(self, client):
         client.force_login(self.user)
-        response = client.post(
+        _response = client.post(
             reverse("settings_profile"),
             {
                 "action": "password",

@@ -17,4 +17,5 @@ urlpatterns = [
     path("settings/roles/create/", views.role_create_view, name="settings_role_create"),
     path("settings/roles/<int:pk>/edit/", views.role_edit_view, name="settings_role_edit"),
     path("settings/roles/<int:pk>/toggle-active/", views.role_toggle_active_view, name="settings_role_toggle_active"),
+    path("settings/roles/<int:pk>/permissions/", views.role_permissions_view, name="settings_role_permissions"),
 ]
