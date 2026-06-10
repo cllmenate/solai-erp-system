@@ -45,6 +45,49 @@ services:
     volumes:
       - redis_data:/data
 
+  celery_worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: development
+    command: celery -A config worker --loglevel=info
+    volumes:
+      - .:/app
+      - /app/.venv
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-dev-key-within-docker-compose-12345
+      - ALLOWED_HOSTS=*
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/solai_erp
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: development
+    command: celery -A config beat --loglevel=info
+    volumes:
+      - .:/app
+      - /app/.venv
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-dev-key-within-docker-compose-12345
+      - ALLOWED_HOSTS=*
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/solai_erp
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
 volumes:
   postgres_data:
   redis_data:
+

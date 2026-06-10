@@ -59,25 +59,70 @@ class TestAuthenticationAndModels:
 
         # Auth with username
         user_by_username = authenticate(
-            username="dualuser", password="dualpassword123"
+            username="dualuser", password="dualpassword123", tenant=self.tenant
         )
         assert user_by_username is not None
         assert user_by_username.username == "dualuser"
 
         # Auth with email
         user_by_email = authenticate(
-            username="dualuser@example.com", password="dualpassword123"
+            username="dualuser@example.com", password="dualpassword123", tenant=self.tenant
         )
         assert user_by_email is not None
         assert user_by_email.email == "dualuser@example.com"
 
         # Fail auth with invalid password
         assert authenticate(
-            username="dualuser", password="wrongpassword"
+            username="dualuser", password="wrongpassword", tenant=self.tenant
         ) is None
         assert authenticate(
-            username="dualuser@example.com", password="wrongpassword"
+            username="dualuser@example.com", password="wrongpassword", tenant=self.tenant
         ) is None
+
+    def test_authenticate_with_duplicate_credentials_across_tenants(self):
+        user_model = get_user_model()
+        
+        # Tenant 2
+        tenant2 = Tenant.objects.create(
+            company_name="Another Company LTDA",
+            trade_name="Another Test",
+            cnpj="77.777.777/0001-77",
+            subdomain="anothertest",
+            schema_name="tenant_anothertest",
+            trial_ends_at=timezone.now() + timedelta(days=14),
+        )
+
+        # User in Tenant 1
+        user1 = user_model.objects.create_user(
+            username="admin",
+            email="admin@solai.com",
+            password="adminpassword123",
+            tenant=self.tenant,
+        )
+
+        # User in Tenant 2 with IDENTICAL username and email
+        user2 = user_model.objects.create_user(
+            username="admin",
+            email="admin@solai.com",
+            password="adminpassword123",
+            tenant=tenant2,
+        )
+
+        # Authenticate specifically against Tenant 1
+        auth_user1 = authenticate(username="admin", password="adminpassword123", tenant=self.tenant)
+        assert auth_user1 is not None
+        assert auth_user1.id == user1.id
+        assert auth_user1.tenant == self.tenant
+
+        # Authenticate specifically against Tenant 2
+        auth_user2 = authenticate(username="admin", password="adminpassword123", tenant=tenant2)
+        assert auth_user2 is not None
+        assert auth_user2.id == user2.id
+        assert auth_user2.tenant == tenant2
+
+        # Verify that superuser login (tenant=None) does not crash and returns None (as we didn't create a superuser)
+        auth_superuser = authenticate(username="admin", password="adminpassword123", tenant=None)
+        assert auth_superuser is None
 
     def test_jwt_generation_and_decoding(self):
         user_model = get_user_model()

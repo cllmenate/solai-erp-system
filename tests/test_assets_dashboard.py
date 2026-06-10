@@ -1,4 +1,5 @@
 from datetime import timedelta
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -8,7 +9,7 @@ from django.utils import timezone
 from validate_docbr import CNPJ
 
 from apps.assets.models import Batch, Brand, Category, Item, Model
-from apps.core.models import Tenant, Role
+from apps.core.models import Role, Tenant
 
 
 @pytest.mark.django_db

@@ -1,11 +1,11 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth import authenticate, get_user_model, login, logout, update_session_auth_hash
 from django.core.signing import BadSignature, SignatureExpired, dumps, loads
 from django.db import connection
 from django.http import Http404
 from django.shortcuts import redirect, render
 
-from apps.core.models import Tenant
+from apps.core.models import Tenant, UserPreferences
 from apps.core.services import provision_tenant
 
 
@@ -56,7 +56,7 @@ def login_view(request):
                 with connection.cursor() as cursor:
                     cursor.execute(f"SET search_path TO {tenant.schema_name}, public")
 
-            user = authenticate(request, username=username_or_email, password=password)
+            user = authenticate(request, username=username_or_email, password=password, tenant=tenant)
 
             # Reset connection path to public if auth fails so public context is restored
             if "sqlite" not in db_engine and user is None:
@@ -88,7 +88,8 @@ def login_view(request):
             return render(request, "core/login.html")
 
         # Authenticate under active subdomain/tenant schema
-        user = authenticate(request, username=username_or_email, password=password)
+        tenant = getattr(request, "tenant", None)
+        user = authenticate(request, username=username_or_email, password=password, tenant=tenant)
         if user is not None:
             if user.is_active:
                 login(request, user)
@@ -192,18 +193,19 @@ def set_password_view(request, token):
         return render(request, "core/set_password_error.html")
 
     # Set connection search path to this tenant's schema to fetch the inactive user
+    try:
+        tenant = Tenant.objects.get(subdomain=subdomain)
+    except Tenant.DoesNotExist as err:
+        raise Http404("Tenant não encontrado") from err
+
     db_engine = connection.settings_dict.get("ENGINE", "")
     if "sqlite" not in db_engine:
-        try:
-            tenant = Tenant.objects.get(subdomain=subdomain)
-            with connection.cursor() as cursor:
-                cursor.execute(f"SET search_path TO {tenant.schema_name}, public")
-        except Tenant.DoesNotExist as err:
-            raise Http404("Tenant não encontrado") from err
+        with connection.cursor() as cursor:
+            cursor.execute(f"SET search_path TO {tenant.schema_name}, public")
 
     user_model = get_user_model()
     try:
-        user = user_model.objects.get(username=username)
+        user = user_model.objects.get(username=username, tenant=tenant)
     except user_model.DoesNotExist as err:
         raise Http404("Usuário não encontrado no tenant.") from err
 
@@ -259,7 +261,7 @@ def password_recovery_request_view(request):
 
         user_model = get_user_model()
         try:
-            user = user_model.objects.get(email=email)
+            user = user_model.objects.get(email=email, tenant=request.tenant)
             token = dumps(
                 {"subdomain": request.tenant.subdomain, "username": user.username, "email": email},
                 salt="password-recovery-salt"
@@ -283,18 +285,19 @@ def password_recovery_confirm_view(request, token):
         messages.error(request, "O link de recuperação expirou ou é inválido.")
         return render(request, "core/set_password_error.html")
 
+    try:
+        tenant = Tenant.objects.get(subdomain=subdomain)
+    except Tenant.DoesNotExist as err:
+        raise Http404("Tenant não encontrado") from err
+
     db_engine = connection.settings_dict.get("ENGINE", "")
     if "sqlite" not in db_engine:
-        try:
-            tenant = Tenant.objects.get(subdomain=subdomain)
-            with connection.cursor() as cursor:
-                cursor.execute(f"SET search_path TO {tenant.schema_name}, public")
-        except Tenant.DoesNotExist as err:
-            raise Http404("Tenant não encontrado") from err
+        with connection.cursor() as cursor:
+            cursor.execute(f"SET search_path TO {tenant.schema_name}, public")
 
     user_model = get_user_model()
     try:
-        user = user_model.objects.get(username=username)
+        user = user_model.objects.get(username=username, tenant=tenant)
     except user_model.DoesNotExist as err:
         raise Http404("Usuário não encontrado.") from err
 
@@ -346,17 +349,15 @@ def invite_accept_view(request, token):
         messages.error(request, "O convite expirou ou é inválido.")
         return render(request, "core/set_password_error.html")
 
+    try:
+        tenant = Tenant.objects.get(subdomain=subdomain)
+    except Tenant.DoesNotExist as err:
+        raise Http404("Tenant não encontrado") from err
+
     db_engine = connection.settings_dict.get("ENGINE", "")
-    tenant = None
     if "sqlite" not in db_engine:
-        try:
-            tenant = Tenant.objects.get(subdomain=subdomain)
-            with connection.cursor() as cursor:
-                cursor.execute(f"SET search_path TO {tenant.schema_name}, public")
-        except Tenant.DoesNotExist as err:
-            raise Http404("Tenant não encontrado") from err
-    else:
-        tenant = Tenant.objects.first()
+        with connection.cursor() as cursor:
+            cursor.execute(f"SET search_path TO {tenant.schema_name}, public")
 
     if request.method == "POST":
         username = request.POST.get("username")
@@ -365,7 +366,7 @@ def invite_accept_view(request, token):
         password_confirm = request.POST.get("password_confirm")
 
         user_model = get_user_model()
-        if user_model.objects.filter(username=username).exists():
+        if user_model.objects.filter(username=username, tenant=tenant).exists():
             messages.error(request, "Este nome de usuário já está em uso nesta empresa.")
         elif not password or password != password_confirm:
             messages.error(request, "As senhas não coincidem ou são inválidas.")
@@ -383,3 +384,78 @@ def invite_accept_view(request, token):
             return redirect("/")
 
     return render(request, "core/invite_accept.html", {"email": email, "subdomain": subdomain})
+
+
+def profile_view(request):
+    if not request.user.is_authenticated:
+        return redirect("login")
+
+    # Ensure user preferences exist
+    preferences, _ = UserPreferences.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "profile":
+            full_name = request.POST.get("full_name", "").strip()
+            email = request.POST.get("email", "").strip()
+
+            if not email:
+                messages.error(request, "O e-mail é obrigatório.")
+            else:
+                user_model = get_user_model()
+                # Check email uniqueness within tenant scope
+                duplicate_email = user_model.objects.filter(
+                    tenant=request.tenant,
+                    email=email
+                ).exclude(id=request.user.id).exists()
+
+                if duplicate_email:
+                    messages.error(request, "Este e-mail já está em uso por outro usuário nesta empresa.")
+                else:
+                    request.user.full_name = full_name
+                    request.user.email = email
+                    request.user.save()
+                    messages.success(request, "Perfil atualizado com sucesso!")
+                    return redirect("settings_profile")
+
+        elif action == "password":
+            current_password = request.POST.get("current_password", "")
+            new_password = request.POST.get("new_password", "")
+            confirm_password = request.POST.get("confirm_password", "")
+
+            if not request.user.check_password(current_password):
+                messages.error(request, "Senha atual incorreta.")
+            elif not new_password:
+                messages.error(request, "A nova senha não pode ser vazia.")
+            elif new_password != confirm_password:
+                messages.error(request, "A nova senha e a confirmação não coincidem.")
+            else:
+                request.user.set_password(new_password)
+                request.user.save()
+                update_session_auth_hash(request, request.user)
+                messages.success(request, "Senha alterada com sucesso!")
+                return redirect("settings_profile")
+
+        elif action == "appearance":
+            dark_mode = request.POST.get("dark_mode") == "on"
+            sidebar_compact = request.POST.get("sidebar_compact") == "on"
+            visual_theme = request.POST.get("visual_theme", "default")
+
+            preferences.dark_mode = dark_mode
+            preferences.sidebar_compact = sidebar_compact
+            preferences.visual_theme = visual_theme
+            preferences.save()
+
+            messages.success(request, "Preferências de aparência atualizadas com sucesso!")
+            return redirect("settings_profile")
+
+    return render(
+        request,
+        "core/settings_profile.html",
+        {
+            "preferences": preferences,
+            "active_tab": request.GET.get("tab", "profile")
+        }
+    )
+
