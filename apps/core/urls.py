@@ -12,4 +12,5 @@ urlpatterns = [
     path("recovery/confirm/<str:token>/", views.password_recovery_confirm_view, name="password_recovery_confirm"),
     path("invite/create/", views.invite_create_view, name="invite_create"),
     path("invite/accept/<str:token>/", views.invite_accept_view, name="invite_accept"),
+    path("settings/profile/", views.profile_view, name="settings_profile"),
 ]

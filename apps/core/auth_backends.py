@@ -14,15 +14,20 @@ class EmailOrUsernameBackend(ModelBackend):
         if username is None:
             username = kwargs.get(user_model.USERNAME_FIELD)
 
+        tenant = kwargs.get("tenant") or getattr(request, "tenant", None)
+
         try:
             # Try to fetch user by email first, fallback to username
             if "@" in username:
-                user = user_model.objects.get(email=username)
+                user = user_model.objects.get(email=username, tenant=tenant)
             else:
-                user = user_model.objects.get(username=username)
+                user = user_model.objects.get(username=username, tenant=tenant)
         except user_model.DoesNotExist:
-            # Run the default password hasher hasher once to mitigate timing attacks
+            # Run the default password hasher once to mitigate timing attacks
             user_model().set_password(password)
+            return None
+        except user_model.MultipleObjectsReturned:
+            # Should not happen because (tenant, username) and (tenant, email) are unique
             return None
 
         if user.check_password(password) and self.user_can_authenticate(user):
@@ -30,7 +35,7 @@ class EmailOrUsernameBackend(ModelBackend):
         return None
 
 
-class RolePermissionBackend(object):
+class RolePermissionBackend:
     """
     Checks permissions assigned to the custom User.role (which inherits from Group).
     """

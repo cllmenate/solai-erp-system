@@ -166,3 +166,30 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.username} ({self.email})"
+
+
+class UserPreferences(models.Model):
+    """
+    Stores look & feel preferences and other UI/usability preferences for a user.
+    """
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="preferences"
+    )
+    dark_mode = models.BooleanField(default=False)
+    sidebar_compact = models.BooleanField(default=False)
+    visual_theme = models.CharField(max_length=50, default="default")
+
+    def __str__(self):
+        return f"Preferences for {self.user.username}"
+
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=User)
+def create_user_preferences(sender, instance, created, **kwargs):
+    if created:
+        UserPreferences.objects.get_or_create(user=instance)
+

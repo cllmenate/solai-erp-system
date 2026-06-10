@@ -92,8 +92,8 @@ AUTH_USER_MODEL = "core.User"
 AUTHENTICATION_BACKENDS = [
     "apps.core.auth_backends.EmailOrUsernameBackend",
     "apps.core.auth_backends.RolePermissionBackend",
-    "django.contrib.auth.backends.ModelBackend",
 ]
+SILENCED_SYSTEM_CHECKS = ["auth.W004"]
 
 # Internationalization
 LANGUAGE_CODE = "pt-br"
@@ -121,5 +121,33 @@ STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="whsec_placeholder"
 LOGIN_URL = "/auth/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+# Celery Configuration
+REDIS_URL = env("REDIS_URL", default="redis://127.0.0.1:6379/1")
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=REDIS_URL)
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=REDIS_URL)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+
+
+# Celery Beat Schedule
+CELERY_BEAT_SCHEDULE = {
+    "check-expired-batches-daily": {
+        "task": "apps.assets.tasks.check_expired_batches",
+        "schedule": 86400.0,  # runs daily (in seconds)
+    },
+}
+
+# Email Configuration
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", default="localhost")
+EMAIL_PORT = env.int("EMAIL_PORT", default=25)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@solaierp.com")
+
 
 
