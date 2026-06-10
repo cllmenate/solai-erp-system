@@ -1,11 +1,20 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model, login, logout, update_session_auth_hash
+from django.contrib.auth import (
+    authenticate,
+    get_user_model,
+    login,
+    logout,
+    update_session_auth_hash,
+)
+from django.contrib.auth.models import Permission
 from django.core.signing import BadSignature, SignatureExpired, dumps, loads
 from django.db import connection
 from django.http import Http404
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 
-from apps.core.models import Tenant, UserPreferences
+from apps.core.decorators import tenant_permission_required
+from apps.core.forms import RoleForm
+from apps.core.models import Role, Tenant, UserPreferences
 from apps.core.services import provision_tenant
 
 
@@ -460,10 +469,7 @@ def profile_view(request):
     )
 
 
-from django.shortcuts import get_object_or_404
-from apps.core.decorators import tenant_permission_required
-from apps.core.models import Role
-from apps.core.forms import RoleForm
+
 
 @tenant_permission_required("core.view_role")
 def role_list_view(request):
@@ -543,4 +549,116 @@ def role_toggle_active_view(request, pk):
     status_str = "ativado" if role.is_active else "desativado"
     messages.success(request, f"Cargo '{role.friendly_name}' foi {status_str} com sucesso!")
     return redirect("settings_roles")
+
+
+@tenant_permission_required("core.change_role")
+def role_permissions_view(request, pk):
+    role = get_object_or_404(Role, pk=pk, tenant=request.tenant)
+    
+    # Define our targeted apps and models for the permissions grid
+    app_modules = {
+        "assets": {
+            "label": "Estoque & Ativos",
+            "models": {
+                "item": "Itens",
+                "batch": "Lotes",
+                "brand": "Marcas",
+                "category": "Categorias",
+                "model": "Modelos",
+                "techsheettemplate": "Templates de Ficha Técnica",
+            }
+        },
+        "commercial": {
+            "label": "Comercial & CRM",
+            "models": {
+                "partner": "Parceiros",
+                "contact": "Contatos",
+                "address": "Endereços",
+            }
+        },
+        "core": {
+            "label": "Configurações",
+            "models": {
+                "user": "Usuários",
+                "role": "Cargos",
+                "tenant": "Empresas/Tenants",
+            }
+        }
+    }
+    
+    actions = ["view", "add", "change", "delete"]
+    
+    # Fetch all relevant permissions
+    all_perms = Permission.objects.filter(
+        content_type__app_label__in=app_modules.keys()
+    ).select_related("content_type")
+    
+    # Create a lookup dictionary of {(app_label, codename): Permission}
+    perm_lookup = {
+        (p.content_type.app_label, p.codename): p for p in all_perms
+    }
+    
+    # Get the role's current permission IDs as a set for quick checking
+    role_perm_ids = set(role.permissions.values_list("id", flat=True))
+    
+    if request.method == "POST":
+        selected_perm_ids = []
+        # Check standard format permission checkboxes from POST
+        post_perms = request.POST.getlist("permissions")
+        for perm_id in post_perms:
+            try:
+                selected_perm_ids.append(int(perm_id))
+            except ValueError:
+                pass
+                
+        # Validate that the selected permission IDs belong to our allowed modules/apps
+        allowed_perms = Permission.objects.filter(
+            id__in=selected_perm_ids,
+            content_type__app_label__in=app_modules.keys()
+        )
+        
+        # Atomically update role permissions
+        role.permissions.set(allowed_perms)
+        
+        messages.success(request, f"Permissões do cargo '{role.friendly_name}' atualizadas com sucesso!")
+        return redirect("settings_roles")
+        
+    # Build a clean data structure for the template grid
+    grid_data = []
+    for app_label, app_info in app_modules.items():
+        module_rows = []
+        for model_name, model_label in app_info["models"].items():
+            row_perms = {}
+            for action in actions:
+                codename = f"{action}_{model_name}"
+                perm = perm_lookup.get((app_label, codename))
+                if perm:
+                    row_perms[action] = {
+                        "id": perm.id,
+                        "codename": perm.codename,
+                        "granted": perm.id in role_perm_ids,
+                    }
+                else:
+                    row_perms[action] = None
+            module_rows.append({
+                "model_name": model_name,
+                "model_label": model_label,
+                "permissions": row_perms,
+            })
+        grid_data.append({
+            "app_label": app_label,
+            "app_label_display": app_info["label"],
+            "rows": module_rows,
+        })
+        
+    return render(
+        request,
+        "core/role_permissions.html",
+        {
+            "role": role,
+            "grid_data": grid_data,
+            "actions": actions,
+        }
+    )
+
 

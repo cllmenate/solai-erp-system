@@ -1,11 +1,13 @@
 from datetime import timedelta
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.core.models import Tenant, Role
+from apps.core.models import Role, Tenant
+
 
 @pytest.mark.django_db
 class TestRolesCRUD:
