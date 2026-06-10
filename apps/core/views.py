@@ -459,3 +459,88 @@ def profile_view(request):
         }
     )
 
+
+from django.shortcuts import get_object_or_404
+from apps.core.decorators import tenant_permission_required
+from apps.core.models import Role
+from apps.core.forms import RoleForm
+
+@tenant_permission_required("core.view_role")
+def role_list_view(request):
+    roles = Role.objects.filter(tenant=request.tenant).order_by("-level", "name")
+    
+    # Check if there are active users assigned to deactivated roles
+    user_model = get_user_model()
+    active_users_in_inactive_roles = user_model.objects.filter(
+        tenant=request.tenant,
+        is_active=True,
+        role__in=roles.filter(is_active=False)
+    ).select_related("role")
+    
+    warn_admin = active_users_in_inactive_roles.exists()
+
+    return render(
+        request,
+        "core/role_list.html",
+        {
+            "roles": roles,
+            "warn_admin": warn_admin,
+            "active_users_in_inactive_roles": active_users_in_inactive_roles,
+        }
+    )
+
+@tenant_permission_required("core.add_role")
+def role_create_view(request):
+    if request.method == "POST":
+        form = RoleForm(request.POST, tenant=request.tenant)
+        if form.is_valid():
+            role = form.save(commit=False)
+            role.tenant = request.tenant
+            role.save()
+            messages.success(request, f"Cargo '{role.friendly_name}' criado com sucesso!")
+            return redirect("settings_roles")
+    else:
+        form = RoleForm(tenant=request.tenant)
+
+    return render(
+        request,
+        "core/role_form.html",
+        {
+            "form": form,
+            "title": "Criar Novo Cargo",
+        }
+    )
+
+@tenant_permission_required("core.change_role")
+def role_edit_view(request, pk):
+    role = get_object_or_404(Role, pk=pk, tenant=request.tenant)
+    
+    if request.method == "POST":
+        form = RoleForm(request.POST, instance=role, tenant=request.tenant)
+        if form.is_valid():
+            role = form.save()
+            messages.success(request, f"Cargo '{role.friendly_name}' atualizado com sucesso!")
+            return redirect("settings_roles")
+    else:
+        form = RoleForm(instance=role, tenant=request.tenant)
+
+    return render(
+        request,
+        "core/role_form.html",
+        {
+            "form": form,
+            "title": f"Editar Cargo: {role.friendly_name}",
+            "role": role,
+        }
+    )
+
+@tenant_permission_required("core.change_role")
+def role_toggle_active_view(request, pk):
+    role = get_object_or_404(Role, pk=pk, tenant=request.tenant)
+    role.is_active = not role.is_active
+    role.save()
+    
+    status_str = "ativado" if role.is_active else "desativado"
+    messages.success(request, f"Cargo '{role.friendly_name}' foi {status_str} com sucesso!")
+    return redirect("settings_roles")
+

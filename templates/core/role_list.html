@@ -1,0 +1,135 @@
+{% extends "commercial/base_dashboard.html" %}
+
+{% block title %}Gerenciamento de Cargos - SolAI ERP{% endblock %}
+
+{% block page_title %}Configurações de Cargos{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-5 border-b border-slate-200 dark:border-slate-800 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 font-outfit">Cargos do Tenant</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Configure os níveis de acesso e as responsabilidades dos colaboradores da empresa.</p>
+        </div>
+        <div>
+            <a href="{% url 'settings_role_create' %}" class="inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-sm shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Criar Novo Cargo
+            </a>
+        </div>
+    </div>
+
+    <!-- Warning Block for Admin -->
+    {% if warn_admin %}
+    <div class="p-5 border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/20 rounded-sm space-y-3">
+        <div class="flex items-start space-x-3">
+            <svg class="h-6 w-6 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <div>
+                <h3 class="text-sm font-bold text-amber-800 dark:text-amber-300">Atenção: Ação Necessária</h3>
+                <p class="text-xs text-amber-700 dark:text-amber-400 mt-1">Existem colaboradores ativos vinculados a cargos que foram desativados. Eles perderam temporariamente o acesso às respectivas permissões no sistema.</p>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-amber-200 dark:divide-amber-900/40 text-xs">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-2 text-left font-semibold text-amber-800 dark:text-amber-300">Colaborador</th>
+                        <th class="px-4 py-2 text-left font-semibold text-amber-800 dark:text-amber-300">E-mail</th>
+                        <th class="px-4 py-2 text-left font-semibold text-amber-800 dark:text-amber-300">Cargo Desativado</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-amber-200 dark:divide-amber-900/20">
+                    {% for u in active_users_in_inactive_roles %}
+                    <tr>
+                        <td class="px-4 py-2 text-amber-800 dark:text-amber-300 font-medium">{{ u.username }}</td>
+                        <td class="px-4 py-2 text-amber-750 dark:text-amber-400">{{ u.email }}</td>
+                        <td class="px-4 py-2"><span class="px-2 py-0.5 rounded-sm bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-400 font-semibold">{{ u.role.friendly_name }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Roles Grid / Table -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+                <thead class="bg-slate-50 dark:bg-slate-950">
+                    <tr>
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cargo</th>
+                        <th scope="col" class="px-6 py-4 class-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nível de Hierarquia</th>
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Descrição</th>
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900 text-sm">
+                    {% for role in roles %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-slate-900 dark:text-slate-100">
+                            {{ role.friendly_name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-slate-500 dark:text-slate-400">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300">
+                                Nível {{ role.level }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-slate-500 dark:text-slate-400 max-w-xs truncate">
+                            {{ role.description|default:"—" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if role.is_active %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                Ativo
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+                                Inativo
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                            <a href="{% url 'settings_role_edit' role.id %}" class="inline-flex items-center text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                Editar
+                            </a>
+                            <form action="{% url 'settings_role_toggle_active' role.id %}" method="POST" class="inline-block">
+                                {% csrf_token %}
+                                <button type="submit" class="inline-flex items-center {% if role.is_active %}text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-350{% else %}text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-350{% endif %}">
+                                    {% if role.is_active %}
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                    </svg>
+                                    Desativar
+                                    {% else %}
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Ativar
+                                    {% endif %}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                            Nenhum cargo cadastrado neste tenant.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

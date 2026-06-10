@@ -13,4 +13,8 @@ urlpatterns = [
     path("invite/create/", views.invite_create_view, name="invite_create"),
     path("invite/accept/<str:token>/", views.invite_accept_view, name="invite_accept"),
     path("settings/profile/", views.profile_view, name="settings_profile"),
+    path("settings/roles/", views.role_list_view, name="settings_roles"),
+    path("settings/roles/create/", views.role_create_view, name="settings_role_create"),
+    path("settings/roles/<int:pk>/edit/", views.role_edit_view, name="settings_role_edit"),
+    path("settings/roles/<int:pk>/toggle-active/", views.role_toggle_active_view, name="settings_role_toggle_active"),
 ]

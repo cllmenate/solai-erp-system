@@ -53,6 +53,8 @@ class RolePermissionBackend:
             return True
         if not hasattr(user_obj, "role") or not user_obj.role:
             return False
+        if not getattr(user_obj.role, "is_active", True):
+            return False
 
         try:
             app_label, codename = perm.split(".")
@@ -68,6 +70,8 @@ class RolePermissionBackend:
             return set()
         if not hasattr(user_obj, "role") or not user_obj.role:
             return set()
+        if not getattr(user_obj.role, "is_active", True):
+            return set()
 
         perms = user_obj.role.permissions.select_related("content_type")
         return {f"{p.content_type.app_label}.{p.codename}" for p in perms}
@@ -78,6 +82,8 @@ class RolePermissionBackend:
         if user_obj.is_superuser:
             return True
         if not hasattr(user_obj, "role") or not user_obj.role:
+            return False
+        if not getattr(user_obj.role, "is_active", True):
             return False
         return user_obj.role.permissions.filter(
             content_type__app_label=app_label
