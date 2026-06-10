@@ -78,10 +78,32 @@ class Tenant(BaseModel):
         super().save(*args, **kwargs)
 
 
+class Sector(BaseModel):
+    """
+    Represents a department/sector inside a Tenant.
+    """
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name="sectors"
+    )
+
+    class Meta:
+        verbose_name = "sector"
+        verbose_name_plural = "sectors"
+        unique_together = ("tenant", "name")
+
+
 class Role(Group):
     """
     Extends Django's default Group model to represent roles inside a Tenant.
     """
+    LEVEL_CHOICES = [
+        (10, "Operacional"),
+        (50, "Gerência / Supervisão"),
+        (100, "Administrador Geral"),
+    ]
+
     tenant = models.ForeignKey(
         Tenant,
         on_delete=models.CASCADE,
@@ -89,7 +111,14 @@ class Role(Group):
         null=True,
         blank=True
     )
-    level = models.IntegerField(default=1)
+    sector = models.ForeignKey(
+        Sector,
+        on_delete=models.PROTECT,
+        related_name="roles",
+        null=True,
+        blank=True
+    )
+    level = models.IntegerField(default=10, choices=LEVEL_CHOICES)
     description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
 

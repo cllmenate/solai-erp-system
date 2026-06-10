@@ -64,16 +64,30 @@ def provision_tenant(
                 cursor.execute(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE")
         raise e
 
-    # Step 3: Create admin user and default role in the schema
+    # Step 3: Create admin user, default sectors and default role in the schema
     try:
         from django.contrib.auth.models import Permission
 
-        from apps.core.models import Role
+        from apps.core.models import Role, Sector
         
         user_model = get_user_model()
         is_active = admin_password is not None
+
+        # Pre-create default sectors
+        default_sectors = ["Administração", "Vendas", "Estoque", "Produção", "Financeiro"]
+        created_sectors = {}
+        for sec_name in default_sectors:
+            sec_obj, _ = Sector.objects.get_or_create(
+                name=sec_name,
+                tenant=tenant,
+                defaults={
+                    "description": f"Setor de {sec_name}",
+                    "is_active": True,
+                }
+            )
+            created_sectors[sec_name] = sec_obj
         
-        # Create default Administrador role for the tenant
+        # Create default Administrador role for the tenant linked to "Administração" sector
         admin_role, _ = Role.objects.get_or_create(
             name=f"{tenant.subdomain}:Administrador",
             tenant=tenant,
@@ -81,8 +95,12 @@ def provision_tenant(
                 "level": 100,
                 "description": "Administrador Geral do Tenant",
                 "is_active": True,
+                "sector": created_sectors["Administração"],
             }
         )
+        if not admin_role.sector:
+            admin_role.sector = created_sectors["Administração"]
+            admin_role.save()
         
         # Assign roles management permissions
         perms = Permission.objects.filter(

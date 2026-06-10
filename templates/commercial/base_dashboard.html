@@ -238,6 +238,14 @@
                     <span class="sidebar-text truncate {% if request.user.preferences.sidebar_compact %}hidden{% endif %}">Cargos</span>
                 </a>
                 {% endif %}
+                {% if perms.core.view_user %}
+                <a href="{% url 'settings_users' %}" class="flex items-center px-3 py-2.5 text-sm font-medium rounded-sm transition-all duration-200 group {% if '/settings/users/' in request.path %}bg-slate-800 text-white border-l-2 border-brand-500{% else %}text-slate-400 hover:bg-slate-800/50 hover:text-slate-200{% endif %}" title="Usuários">
+                    <svg class="flex-shrink-0 h-5 w-5 text-slate-400 group-hover:text-slate-200 transition-colors {% if not request.user.preferences.sidebar_compact %}mr-3{% endif %} collapsed-margin-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span class="sidebar-text truncate {% if request.user.preferences.sidebar_compact %}hidden{% endif %}">Usuários</span>
+                </a>
+                {% endif %}
             </div>
         </nav>
 

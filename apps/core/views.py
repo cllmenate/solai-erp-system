@@ -7,13 +7,15 @@ from django.contrib.auth import (
     update_session_auth_hash,
 )
 from django.contrib.auth.models import Permission
+from django.core.exceptions import PermissionDenied
 from django.core.signing import BadSignature, SignatureExpired, dumps, loads
 from django.db import connection
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.crypto import get_random_string
 
 from apps.core.decorators import tenant_permission_required
-from apps.core.forms import RoleForm
+from apps.core.forms import RoleForm, UserForm
 from apps.core.models import Role, Tenant, UserPreferences
 from apps.core.services import provision_tenant
 
@@ -328,10 +330,8 @@ def password_recovery_confirm_view(request, token):
     return render(request, "core/recovery_confirm.html", {"username": username})
 
 
+@tenant_permission_required("core.add_user")
 def invite_create_view(request):
-    # Only active superuser or admin role of the active tenant can generate invites
-    if not request.user.is_authenticated or not request.user.is_superuser:
-        return redirect("/")
 
     if request.method == "POST":
         email = request.POST.get("email")
@@ -660,5 +660,106 @@ def role_permissions_view(request, pk):
             "actions": actions,
         }
     )
+
+
+@tenant_permission_required("core.view_user")
+def user_list_view(request):
+    user_model = get_user_model()
+    users = user_model.objects.filter(tenant=request.tenant).select_related("role", "role__sector").order_by("username")
+    return render(
+        request,
+        "core/user_list.html",
+        {
+            "users": users,
+        }
+    )
+
+
+@tenant_permission_required("core.add_user")
+def user_create_view(request):
+    if request.method == "POST":
+        form = UserForm(request.POST, tenant=request.tenant, request_user=request.user)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.tenant = request.tenant
+            
+            # Generate a secure random password for security
+            temp_pass = get_random_string(32)
+            user.set_password(temp_pass)
+            
+            user.save()
+            messages.success(request, f"Usuário '{user.username}' criado com sucesso!")
+            return redirect("settings_users")
+    else:
+        form = UserForm(tenant=request.tenant, request_user=request.user)
+
+    return render(
+        request,
+        "core/user_form.html",
+        {
+            "form": form,
+            "title": "Criar Novo Usuário",
+        }
+    )
+
+
+@tenant_permission_required("core.change_user")
+def user_edit_view(request, pk):
+    user_model = get_user_model()
+    user = get_object_or_404(user_model, pk=pk, tenant=request.tenant)
+    
+    # Validação de Hierarquia de Cargos
+    if not request.user.is_superuser:
+        editor_level = getattr(request.user.role, "level", 0)
+        target_level = getattr(user.role, "level", 0)
+        if user.id != request.user.id and target_level >= editor_level:
+            raise PermissionDenied("Você não tem permissão para editar um usuário com cargo de nível superior ou igual ao seu.")
+
+    if request.method == "POST":
+        form = UserForm(request.POST, instance=user, tenant=request.tenant, request_user=request.user)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f"Usuário '{user.username}' atualizado com sucesso!")
+            return redirect("settings_users")
+    else:
+        form = UserForm(instance=user, tenant=request.tenant, request_user=request.user)
+
+    return render(
+        request,
+        "core/user_form.html",
+        {
+            "form": form,
+            "title": f"Editar Usuário: {user.username}",
+            "user_obj": user,
+        }
+    )
+
+
+@tenant_permission_required("core.change_user")
+def user_toggle_active_view(request, pk):
+    if request.method != "POST":
+        raise Http404("Método não permitido.")
+        
+    user_model = get_user_model()
+    user = get_object_or_404(user_model, pk=pk, tenant=request.tenant)
+    
+    # Não permitir que um usuário desative a si próprio
+    if user.id == request.user.id:
+        messages.error(request, "Você não pode desativar o seu próprio usuário.")
+        return redirect("settings_users")
+
+    # Validação de Hierarquia de Cargos
+    if not request.user.is_superuser:
+        editor_level = getattr(request.user.role, "level", 0)
+        target_level = getattr(user.role, "level", 0)
+        if target_level >= editor_level:
+            raise PermissionDenied("Você não tem permissão para alterar o status de um usuário com cargo de nível superior ou igual ao seu.")
+
+    user.is_active = not user.is_active
+    user.save()
+    
+    status_str = "ativado" if user.is_active else "desativado"
+    messages.success(request, f"Usuário '{user.username}' foi {status_str} com sucesso!")
+    return redirect("settings_users")
 
 
