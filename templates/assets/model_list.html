@@ -1,69 +1,96 @@
 {% extends "commercial/base_dashboard.html" %}
 
 {% block title %}Modelos - SolAI ERP{% endblock %}
-
 {% block page_title %}Modelos de Itens / Produtos{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-sm border border-slate-200 shadow-sm">
-    <div class="p-6 border-b border-slate-200 flex items-center justify-between">
-        <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Modelos Cadastrados</h3>
-        <a href="{% url 'model_create' %}" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-sm text-white bg-brand-600 hover:bg-brand-700 transition-colors shadow-sm">
-            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Novo Modelo
-        </a>
+<div class="max-w-6xl mx-auto space-y-6 animate-fade-in">
+    <!-- Header Controls -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between pb-5 border-b border-slate-200/80 dark:border-slate-800/80 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white font-outfit">Modelos de Itens</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Gerencie as especificações técnicas, medidas e as categorias dos itens do catálogo.</p>
+        </div>
+        <div>
+            {% url 'model_create' as create_url %}
+            {% include "components/btn.html" with variant="primary" label="Novo Modelo" href=create_url %}
+        </div>
     </div>
 
-    <div class="overflow-x-auto">
+    
+    <!-- Filter Bar Card -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm mt-6 mb-6">
+        <form method="GET" action="{% url 'model_list' %}" class="flex flex-col md:flex-row md:items-center gap-4">
+            <div class="relative flex-1">
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Buscar por nome do modelo ou marca..."
+                       class="w-full pl-10 pr-4 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <button type="submit" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-sm font-medium rounded-xl transition-colors">
+                    Pesquisar
+                </button>
+                {% if search_query %}
+                    <a href="{% url 'model_list' %}" class="text-xs text-slate-500 hover:text-brand-500 dark:text-slate-400 dark:hover:text-brand-400 underline transition-colors">Limpar Filtros</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+<!-- Table Card -->
+    <div class="w-full overflow-x-auto bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm">
         <table class="w-full text-left border-collapse">
             <thead>
-                <tr class="bg-slate-50 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
-                    <th class="py-3.5 px-6">Nome</th>
-                    <th class="py-3.5 px-6">Marca</th>
-                    <th class="py-3.5 px-6">UOM / Peso</th>
-                    <th class="py-3.5 px-6">Categorias</th>
-                    <th class="py-3.5 px-6 text-center">Ações</th>
+                <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+                    <th scope="col" class="px-6 py-4 class=text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nome</th>
+                    <th scope="col" class="px-6 py-4 class=text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Marca</th>
+                    <th scope="col" class="px-6 py-4 class=text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Medidas / Peso</th>
+                    <th scope="col" class="px-6 py-4 class=text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Categorias</th>
+                    <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ações</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 text-sm">
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-sm">
                 {% for model in models %}
-                    <tr class="hover:bg-slate-50/55 transition-colors">
-                        <td class="py-4 px-6 font-semibold text-slate-800">{{ model.name }}</td>
-                        <td class="py-4 px-6 font-medium text-slate-700">{{ model.brand.name }}</td>
-                        <td class="py-4 px-6 font-mono text-xs">
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td class="px-6 py-4 font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap">{{ model.name }}</td>
+                        <td class="px-6 py-4 font-medium text-slate-700 dark:text-slate-350 whitespace-nowrap">{{ model.brand.name }}</td>
+                        <td class="px-6 py-4 font-mono text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
                             <span class="block">UOM: {{ model.unit_of_measure }}</span>
                             {% if model.weight %}
-                                <span class="block text-slate-500">{{ model.weight }} kg</span>
+                                <span class="block text-slate-400 dark:text-slate-500 mt-0.5">{{ model.weight }} kg</span>
                             {% endif %}
                         </td>
-                        <td class="py-4 px-6">
+                        <td class="px-6 py-4">
                             <div class="flex flex-wrap gap-1">
                                 {% for category in model.categories.all %}
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
-                                        {{ category.name }}
-                                    </span>
+                                    {% include "components/badge.html" with label=category.name %}
                                 {% empty %}
-                                    <span class="text-slate-400 font-light text-xs">-</span>
+                                    <span class="text-slate-400 dark:text-slate-500">—</span>
                                 {% endfor %}
                             </div>
                         </td>
-                        <td class="py-4 px-6 text-center whitespace-nowrap">
-                            <div class="flex items-center justify-center space-x-3">
-                                <a href="{% url 'model_edit' model.id %}" class="text-blue-600 hover:text-blue-900 px-2 py-1 rounded-sm hover:bg-blue-50 transition-all font-medium">
-                                    Editar
-                                </a>
-                                <a href="{% url 'model_delete' model.id %}" onclick="return confirm('Tem certeza que deseja desativar este modelo?')" class="text-rose-600 hover:text-rose-900 px-2 py-1 rounded-sm hover:bg-rose-50 transition-all font-medium">
-                                    Excluir
-                                </a>
-                            </div>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1">
+                            {% url 'model_detail' model.id as view_url %}
+                            {% include "components/btn.html" with variant="ghost" icon="view" href=view_url custom_classes="!p-2 text-slate-500 hover:text-brand-500 dark:text-slate-400 dark:hover:text-brand-400" title="Visualizar" %}
+                            {% url 'model_edit' model.id as edit_url %}
+                            {% include "components/btn.html" with variant="ghost" icon="edit" href=edit_url custom_classes="!p-2 text-slate-500 hover:text-brand-500 dark:text-slate-400 dark:hover:text-brand-400" title="Editar" %}
+                            {% url 'model_delete' model.id as del_url %}
+                            {% include "components/btn.html" with variant="ghost" icon="disable" href=del_url custom_classes="!p-2 text-rose-500 hover:text-rose-600 dark:text-rose-450 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30" extra_attrs='onclick="return confirm(`Deseja realmente desativar este registro?`)"' title="Desativar" %}
                         </td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="5" class="py-8 px-6 text-center text-slate-500">
-                            Nenhum modelo cadastrado. Clique em "Novo Modelo" para começar.
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-400 dark:text-slate-500">
+                            <div class="flex flex-col items-center justify-center space-y-3">
+                                <svg class="h-10 w-10 text-slate-300 dark:text-slate-750" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 01-2 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                                <span>Nenhum modelo cadastrado. Clique em "Novo Modelo" para começar.</span>
+                            </div>
                         </td>
                     </tr>
                 {% endfor %}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,350 +7,183 @@
     <meta property="og:title" content="SolAI ERP — Sistema SaaS B2B Multi-Tenant Inteligente">
     <meta property="og:description" content="O ERP SaaS B2B Multi-Tenant com agentes IA integrados ao core operacional e isolamento de schemas real por Tenant.">
     <title>SolAI ERP — Sistema SaaS B2B Multi-Tenant Inteligente</title>
+    <!-- Google Fonts: Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #0b0c10;
-            --text: #f5f5f7;
-            --accent: #ff4a00; /* Signal Orange */
-            --accent-glow: rgba(255, 74, 0, 0.15);
-            --border: #2c2f33;
-            --card-bg: #16181d;
-            --font-display: 'Space Grotesk', sans-serif;
-            --font-body: 'Outfit', sans-serif;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: var(--font-body);
-            overflow-x: hidden;
-            line-height: 1.6;
-        }
-
-        header {
-            width: 100%;
-            border-bottom: 2px solid var(--border);
-            padding: 1.5rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(11, 12, 16, 0.8);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-family: var(--font-display);
-            font-weight: 700;
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: -0.05em;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .logo span {
-            color: var(--accent);
-        }
-
-        nav a {
-            color: var(--text);
-            text-decoration: none;
-            font-family: var(--font-display);
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: color 0.2s ease;
-            padding: 0.5rem 1rem;
-            border: 1px solid transparent;
-        }
-
-        nav a:hover {
-            color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        .hero {
-            min-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 4rem 2rem;
-            border-bottom: 2px solid var(--border);
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .hero h1 {
-            font-family: var(--font-display);
-            font-size: 5rem;
-            font-weight: 900;
-            line-height: 0.95;
-            letter-spacing: -0.04em;
-            text-transform: uppercase;
-            margin-bottom: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 3rem;
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff5f0',
+                            100: '#ffe6d5',
+                            500: '#ff4a00',
+                            600: '#e04100',
+                            700: '#b83200',
+                            900: '#7c1c00',
+                        }
+                    }
+                }
             }
         }
-
-        .hero h1 span {
-            color: var(--accent);
-            display: block;
-        }
-
-        .hero p {
-            font-size: 1.35rem;
-            max-width: 650px;
-            color: #8a8d98;
-            margin-bottom: 3rem;
-        }
-
-        .cta-btn {
-            background-color: var(--accent);
-            color: #000;
-            font-family: var(--font-display);
-            font-weight: 700;
-            text-transform: uppercase;
-            text-decoration: none;
-            padding: 1.25rem 2.5rem;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
-            box-shadow: 4px 4px 0px #fff;
-        }
-
-        .cta-btn:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0px #fff;
-        }
-
-        .cta-btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px #fff;
-        }
-
-        .pricing-section {
-            padding: 6rem 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .pricing-title {
-            font-family: var(--font-display);
-            font-size: 3rem;
-            text-transform: uppercase;
-            margin-bottom: 3rem;
-            letter-spacing: -0.03em;
-            border-left: 6px solid var(--accent);
-            padding-left: 1rem;
-        }
-
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
-        }
-
-        .pricing-card {
-            background-color: var(--card-bg);
-            border: 2px solid var(--border);
-            padding: 3rem 2rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: border-color 0.3s ease;
-            position: relative;
-        }
-
-        .pricing-card.featured {
-            border-color: var(--accent);
-        }
-
-        .pricing-card.featured::after {
-            content: "POPULAR";
-            position: absolute;
-            top: -12px;
-            right: 20px;
-            background-color: var(--accent);
-            color: #000;
-            font-family: var(--font-display);
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.25rem 0.75rem;
-        }
-
-        .plan-name {
-            font-family: var(--font-display);
-            font-size: 1.75rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .plan-price {
-            font-family: var(--font-display);
-            font-size: 3rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: baseline;
-        }
-
-        .plan-price span {
-            font-size: 1rem;
-            color: #8a8d98;
-            font-family: var(--font-body);
-        }
-
-        .plan-features {
-            list-style: none;
-            margin-bottom: 3rem;
-        }
-
-        .plan-features li {
-            margin-bottom: 0.75rem;
-            color: #c9ccd6;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.05rem;
-        }
-
-        .plan-features li::before {
-            content: "→";
-            color: var(--accent);
-            font-weight: 700;
-        }
-
-        .subscribe-btn {
-            width: 100%;
-            text-align: center;
-            background-color: transparent;
-            color: var(--text);
-            border: 2px solid var(--border);
-            font-family: var(--font-display);
-            font-weight: 700;
-            text-transform: uppercase;
-            text-decoration: none;
-            padding: 1rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .subscribe-btn:hover {
-            border-color: var(--accent);
-            background-color: var(--accent);
-            color: #000;
-        }
-
-        footer {
-            border-top: 2px solid var(--border);
-            padding: 4rem 2rem;
-            text-align: center;
-            color: #555861;
-            font-family: var(--font-display);
-            font-size: 0.9rem;
-        }
-    </style>
+    </script>
+    {% include "components/tokens.html" %}
 </head>
-<body>
-    <header>
-        <div class="logo">SolAI<span>.</span>ERP</div>
-        <nav>
-            <a href="#pricing">Planos</a>
-            <a href="{% url 'login' %}">Entrar</a>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-brand-500/30 selection:text-white">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-6 py-4 flex justify-between items-center max-w-7xl mx-auto rounded-b-2xl">
+        <div class="text-xl font-black font-outfit tracking-tighter uppercase">
+            SOL<span class="text-brand-500">AI</span><span class="text-xs font-light text-slate-500 ml-1">ERP</span>
+        </div>
+        <nav class="flex items-center space-x-6">
+            <a href="#pricing" class="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Planos</a>
+            <a href="{% url 'login' %}" class="text-sm font-semibold text-brand-500 hover:text-brand-400 transition-colors">Entrar</a>
         </nav>
     </header>
 
-    <main>
-        <section class="hero">
-            <h1>Gerenciamento total. <span>Inteligência Absoluta.</span></h1>
-            <p>O ERP SaaS B2B Multi-Tenant com agentes IA integrados ao core operacional e isolamento de schemas real por Tenant.</p>
-            <a href="{% url 'signup_trial' %}" class="cta-btn">Começar Trial de 14 Dias</a>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 space-y-24 py-12 md:py-24">
+        <!-- Hero Section (Experimental Typographic Hero) -->
+        <section class="flex flex-col items-center text-center max-w-4xl mx-auto space-y-8 animate-fade-in">
+            <h1 class="text-4xl sm:text-6xl md:text-7xl font-black font-outfit text-white tracking-tight uppercase leading-none">
+                Gerenciamento total. <span class="text-brand-500 block mt-2">Inteligência Absoluta.</span>
+            </h1>
+            <p class="text-slate-400 text-base sm:text-xl max-w-2xl leading-relaxed">
+                O ERP SaaS B2B Multi-Tenant com agentes IA integrados ao core operacional e isolamento de schemas real por Tenant.
+            </p>
+            <div class="pt-4">
+                {% url 'signup_trial' as signup_url %}
+                {% include "components/btn.html" with variant="primary" label="Começar Trial de 14 Dias" size="lg" href=signup_url %}
+            </div>
         </section>
 
-        <section id="pricing" class="pricing-section">
-            <h2 class="pricing-title">Escolha seu plano</h2>
-            <div class="pricing-grid">
+        <!-- Pricing Section -->
+        <section id="pricing" class="space-y-12 max-w-6xl mx-auto">
+            <div class="text-center space-y-3">
+                <h2 class="text-2xl sm:text-4xl font-black font-outfit uppercase tracking-tight text-white">Escolha seu plano</h2>
+                <p class="text-slate-500 text-sm sm:text-base">Selecione o plano ideal para a escala de sua empresa.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Basic Plan -->
-                <div class="pricing-card">
-                    <div>
-                        <div class="plan-name">Basic</div>
-                        <div class="plan-price">R$ 199<span>/mês</span></div>
-                        <ul class="plan-features">
-                            <li>Até 5 usuários ativos</li>
-                            <li>Acesso ao controle de estoque básico</li>
-                            <li>Gestão de parceiros</li>
-                            <li>Faturamento básico</li>
+                <div class="bg-slate-900/40 border border-slate-800/80 hover:border-brand-500/20 rounded-3xl p-8 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="space-y-6">
+                        <div>
+                            <div class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Básico</div>
+                            <div class="text-xl font-bold font-outfit text-white">Basic</div>
+                        </div>
+                        <div class="text-3xl font-black font-outfit text-white flex items-baseline">
+                            R$ 199 <span class="text-xs text-slate-500 font-sans font-medium ml-1">/mês</span>
+                        </div>
+                        <ul class="space-y-3 text-sm text-slate-400">
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Até 5 usuários ativos
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Controle de estoque básico
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Gestão de parceiros
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Faturamento básico
+                            </li>
                         </ul>
                     </div>
-                    <form action="/stripe/create-checkout/" method="POST">
+                    <form action="/stripe/create-checkout/" method="POST" class="mt-8">
+                        {% csrf_token %}
                         <input type="hidden" name="plan" value="basic">
-                        <button type="submit" class="subscribe-btn">Assinar Basic</button>
+                        {% include "components/btn.html" with type="submit" variant="outline" label="Assinar Basic" custom_classes="w-full py-3" %}
                     </form>
                 </div>
 
-                <!-- Pro Plan -->
-                <div class="pricing-card featured">
-                    <div>
-                        <div class="plan-name">Pro</div>
-                        <div class="plan-price">R$ 499<span>/mês</span></div>
-                        <ul class="plan-features">
-                            <li>Usuários ilimitados</li>
-                            <li>Estoque avançado FIFO</li>
-                            <li>Agentes de IA assistiva</li>
-                            <li>Integração completa de fretes</li>
-                            <li>Suporte prioritário 24/7</li>
+                <!-- Pro Plan (Featured) -->
+                <div class="bg-slate-900 border border-brand-500/60 rounded-3xl p-8 flex flex-col justify-between hover:shadow-2xl shadow-brand-500/5 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-brand-500 text-slate-950 text-[10px] font-black font-outfit tracking-wider px-3 py-1 rounded-bl-xl uppercase">
+                        POPULAR
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="text-xs font-bold text-brand-500 uppercase tracking-widest mb-1">Recomendado</div>
+                            <div class="text-xl font-bold font-outfit text-white">Pro</div>
+                        </div>
+                        <div class="text-3xl font-black font-outfit text-white flex items-baseline">
+                            R$ 499 <span class="text-xs text-slate-500 font-sans font-medium ml-1">/mês</span>
+                        </div>
+                        <ul class="space-y-3 text-sm text-slate-300">
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Usuários ilimitados
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Estoque avançado FIFO
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Agentes de IA assistiva
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Integração completa de fretes
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Suporte prioritário 24/7
+                            </li>
                         </ul>
                     </div>
-                    <form action="/stripe/create-checkout/" method="POST">
+                    <form action="/stripe/create-checkout/" method="POST" class="mt-8">
+                        {% csrf_token %}
                         <input type="hidden" name="plan" value="pro">
-                        <button type="submit" class="subscribe-btn">Assinar Pro</button>
+                        {% include "components/btn.html" with type="submit" variant="primary" label="Assinar Pro" custom_classes="w-full py-3" %}
                     </form>
                 </div>
 
                 <!-- Enterprise Plan -->
-                <div class="pricing-card">
-                    <div>
-                        <div class="plan-name">Enterprise</div>
-                        <div class="plan-price">R$ 1499<span>/mês</span></div>
-                        <ul class="plan-features">
-                            <li>Customizações exclusivas</li>
-                            <li>Agentes de IA com total autonomia</li>
-                            <li>Módulo completo de Licitações</li>
-                            <li>SLA garantido de 99.9%</li>
-                            <li>Gerente de conta dedicado</li>
+                <div class="bg-slate-900/40 border border-slate-800/80 hover:border-brand-500/20 rounded-3xl p-8 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="space-y-6">
+                        <div>
+                            <div class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Corporativo</div>
+                            <div class="text-xl font-bold font-outfit text-white">Enterprise</div>
+                        </div>
+                        <div class="text-3xl font-black font-outfit text-white flex items-baseline">
+                            R$ 1499 <span class="text-xs text-slate-500 font-sans font-medium ml-1">/mês</span>
+                        </div>
+                        <ul class="space-y-3 text-sm text-slate-400">
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Customizações exclusivas
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Agentes de IA autónomos
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Módulo de Licitações completo
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> SLA garantido de 99.9%
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-brand-500 font-bold">→</span> Gerente de conta dedicado
+                            </li>
                         </ul>
                     </div>
-                    <form action="/stripe/create-checkout/" method="POST">
+                    <form action="/stripe/create-checkout/" method="POST" class="mt-8">
+                        {% csrf_token %}
                         <input type="hidden" name="plan" value="enterprise">
-                        <button type="submit" class="subscribe-btn">Assinar Enterprise</button>
+                        {% include "components/btn.html" with type="submit" variant="outline" label="Assinar Enterprise" custom_classes="w-full py-3" %}
                     </form>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer>
+    <!-- Footer -->
+    <footer class="max-w-7xl mx-auto px-6 py-12 border-t border-slate-800/80 text-center text-xs text-slate-500 font-semibold uppercase tracking-wider">
         <p>&copy; 2026 SolAI ERP. Todos os direitos reservados. Design e Engenharia sob medida.</p>
     </footer>
 </body>

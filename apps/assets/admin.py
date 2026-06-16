@@ -1,5 +1,6 @@
 from django.contrib import admin
-from apps.assets.models import Brand, TechSheetTemplate, Category, Model, Item, Batch
+
+from apps.assets.models import Batch, Brand, Category, Item, Model, TechSheetTemplate
 
 
 class BatchInline(admin.TabularInline):

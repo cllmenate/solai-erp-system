@@ -3,66 +3,65 @@
 {% block title %}Trial de 14 Dias — SolAI ERP{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card" style="max-width: 600px;">
-        <div class="auth-logo">SolAI<span>.</span>ERP</div>
-        <h2 style="text-align: center; margin-bottom: 2rem; font-family: var(--font-display); font-size: 1.5rem;">Cadastre sua empresa e comece seu trial de 14 dias</h2>
+<div class="flex-1 flex items-center justify-center p-4 sm:p-8 animate-fade-in">
+    <div class="w-full max-w-2xl bg-slate-900/60 border border-slate-800/80 rounded-3xl p-8 hover:border-brand-500/40 shadow-2xl shadow-slate-950/50 transition-all duration-300">
+        <!-- Logo -->
+        <div class="text-3xl font-black font-outfit text-white text-center mb-4 tracking-tighter uppercase">
+            SOL<span class="text-brand-500">AI</span><span class="text-xs font-light text-slate-500 ml-1">ERP</span>
+        </div>
+        <h2 class="text-center text-slate-300 font-outfit text-lg mb-8">Cadastre sua empresa e comece seu trial de 14 dias</h2>
 
         {% if messages %}
-        <div class="alert-messages">
+        <div class="space-y-2 mb-6">
             {% for message in messages %}
-            <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
-                {{ message }}
-            </div>
+                {% include "components/alert.html" with type=message.tags message=message %}
             {% endfor %}
         </div>
         {% endif %}
 
-        <form method="post">
+        <form method="post" class="space-y-6">
             {% csrf_token %}
             
-            <h3 style="margin-bottom: 1rem; color: var(--accent); font-family: var(--font-display); font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem;">Dados Corporativos</h3>
+            <!-- Secção Dados Corporativos -->
+            <div class="space-y-4">
+                <h3 class="text-brand-500 font-outfit font-bold text-sm uppercase tracking-wider border-b border-slate-800/80 pb-2">Dados Corporativos</h3>
 
-            <div class="form-group">
-                <label for="company_name">Razão Social</label>
-                <input type="text" name="company_name" id="company_name" class="form-control" placeholder="ex: SolAI ERP Ltda" required>
-            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% include "components/input.html" with type="text" name="company_name" id="company_name" label="Razão Social" placeholder="ex: SolAI ERP Ltda" required=True %}
+                    {% include "components/input.html" with type="text" name="trade_name" id="trade_name" label="Nome Fantasia" placeholder="ex: SolAI ERP" required=True %}
+                </div>
 
-            <div class="form-group">
-                <label for="trade_name">Nome Fantasia</label>
-                <input type="text" name="trade_name" id="trade_name" class="form-control" placeholder="ex: SolAI ERP" required>
-            </div>
-
-            <div class="form-group">
-                <label for="cnpj">CNPJ</label>
-                <input type="text" name="cnpj" id="cnpj" class="form-control" placeholder="00.000.000/0000-00" required>
-            </div>
-
-            <div class="form-group">
-                <label for="subdomain">Subdomínio do Acesso (URL)</label>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <input type="text" name="subdomain" id="subdomain" class="form-control" placeholder="sua-empresa" required style="flex: 1;">
-                    <span style="font-size: 0.95rem; color: #888; font-weight: bold;">.solai.com</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% include "components/input.html" with type="text" name="cnpj" id="cnpj" label="CNPJ" placeholder="00.000.000/0000-00" required=True %}
+                    <div class="flex flex-col gap-1.5 w-full">
+                        <label for="subdomain" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Subdomínio do Acesso (URL) <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="flex items-stretch rounded-xl bg-slate-900/60 border border-slate-800 overflow-hidden focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-500/20 transition-all duration-200">
+                            <input type="text" name="subdomain" id="subdomain" placeholder="sua-empresa" required class="flex-1 px-4 py-3 bg-transparent text-sm text-slate-900 dark:text-slate-100 focus:outline-none">
+                            <span class="inline-flex items-center px-4 bg-slate-800 text-sm font-bold text-slate-400 border-l border-slate-800">.solai.com</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--accent); font-family: var(--font-display); font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem;">Configuração do Administrador</h3>
+            <!-- Secção Administrador -->
+            <div class="space-y-4 pt-4">
+                <h3 class="text-brand-500 font-outfit font-bold text-sm uppercase tracking-wider border-b border-slate-800/80 pb-2">Configuração do Administrador</h3>
 
-            <div class="form-group">
-                <label for="username">Nome de Usuário</label>
-                <input type="text" name="username" id="username" class="form-control" placeholder="ex: admin" required autocomplete="username">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% include "components/input.html" with type="text" name="username" id="username" label="Nome de Usuário" placeholder="ex: admin" required=True extra_attrs='autocomplete="username"' %}
+                    {% include "components/input.html" with type="email" name="email" id="email" label="E-mail Corporativo" placeholder="ex: admin@empresa.com" required=True extra_attrs='autocomplete="email"' %}
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="email">E-mail Corporativo</label>
-                <input type="email" name="email" id="email" class="form-control" placeholder="ex: admin@empresa.com" required autocomplete="email">
+            <div class="pt-4">
+                {% include "components/btn.html" with type="submit" variant="primary" label="Criar Conta e Iniciar Trial" custom_classes="w-full py-3" %}
             </div>
-
-            <button type="submit" class="btn-primary" style="margin-top: 1.5rem;">Criar Conta e Iniciar Trial</button>
         </form>
 
-        <div class="auth-footer">
-            <p>Já tem uma conta? <a href="{% url 'login' %}">Acesse o painel</a></p>
+        <div class="mt-8 text-center text-sm text-slate-500">
+            <p>Já tem uma conta? <a href="{% url 'login' %}" class="text-brand-500 hover:text-brand-600 font-semibold transition-colors">Acesse o painel</a></p>
         </div>
     </div>
 </div>

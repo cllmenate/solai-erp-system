@@ -16,24 +16,31 @@ urlpatterns = [
     # Brand CRUD
     path("brands/", views.brand_list_view, name="brand_list"),
     path("brands/create/", views.brand_create_view, name="brand_create"),
+    path("brands/<uuid:pk>/", views.brand_detail_view, name="brand_detail"),
     path("brands/<uuid:pk>/edit/", views.brand_update_view, name="brand_edit"),
     path("brands/<uuid:pk>/delete/", views.brand_delete_view, name="brand_delete"),
 
     # Category CRUD
     path("categories/", views.category_list_view, name="category_list"),
     path("categories/create/", views.category_create_view, name="category_create"),
+    path("categories/<uuid:pk>/", views.category_detail_view, name="category_detail"),
     path("categories/<uuid:pk>/edit/", views.category_update_view, name="category_edit"),
     path("categories/<uuid:pk>/delete/", views.category_delete_view, name="category_delete"),
 
     # Model CRUD
     path("models/", views.model_list_view, name="model_list"),
     path("models/create/", views.model_create_view, name="model_create"),
+    path("models/<uuid:pk>/", views.model_detail_view, name="model_detail"),
     path("models/<uuid:pk>/edit/", views.model_update_view, name="model_edit"),
     path("models/<uuid:pk>/delete/", views.model_delete_view, name="model_delete"),
+
+    # TechSheetTemplate CRUD
+    path("templates/<uuid:pk>/", views.tech_sheet_template_detail_view, name="tech_sheet_template_detail"),
 
     # Batch CRUD
     path("batches/", views.batch_list_view, name="batch_list"),
     path("batches/create/", views.batch_create_view, name="batch_create"),
+    path("batches/<uuid:pk>/", views.batch_detail_view, name="batch_detail"),
     path("batches/<uuid:pk>/edit/", views.batch_update_view, name="batch_edit"),
     path("batches/<uuid:pk>/delete/", views.batch_delete_view, name="batch_delete"),
 ]

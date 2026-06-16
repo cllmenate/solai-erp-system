@@ -1,0 +1,27 @@
+<div class="w-full overflow-x-auto bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm {{ container_classes }}">
+    <table class="w-full text-left border-collapse {{ custom_classes }}">
+        <thead>
+            <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+                {% for header in headers %}
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ header }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+            {% if rows_html %}
+                {{ rows_html|safe }}
+            {% else %}
+                <tr>
+                    <td colspan="{{ headers|length }}" class="px-6 py-12 text-center text-sm text-slate-400 dark:text-slate-500">
+                        <div class="flex flex-col items-center justify-center space-y-3">
+                            <svg class="h-10 w-10 text-slate-300 dark:text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0V9a2 2 0 00-2-2M4 13v6a2 2 0 002 2h12a2 2 0 002-2v-6" />
+                            </svg>
+                            <span>{{ empty_message|default:"Nenhum registro encontrado." }}</span>
+                        </div>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>

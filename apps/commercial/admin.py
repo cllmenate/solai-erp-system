@@ -1,5 +1,6 @@
 from django.contrib import admin
-from apps.commercial.models import Partner, Contact, Address
+
+from apps.commercial.models import Address, Contact, Partner
 
 
 class ContactInline(admin.TabularInline):

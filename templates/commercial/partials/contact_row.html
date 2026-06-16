@@ -1,39 +1,39 @@
-<div class="contact-row bg-slate-50 p-4 border border-slate-200 rounded-sm relative flex flex-col md:flex-row gap-4 items-end">
+<div class="contact-row bg-slate-50/50 dark:bg-slate-950/20 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 relative flex flex-col md:flex-row gap-4 items-end animate-slide-up">
     <!-- Contact Name -->
-    <div class="flex-1 space-y-1 w-full">
-        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide">Nome *</label>
+    <div class="flex-1 space-y-2 w-full">
+        <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nome *</label>
         <input type="text" name="contact_name[]" value="{{ contact.name }}" required 
-               class="w-full px-3 py-1.5 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+               class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
     </div>
 
     <!-- Contact Email -->
-    <div class="flex-1 space-y-1 w-full">
-        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide">E-mail *</label>
+    <div class="flex-1 space-y-2 w-full">
+        <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">E-mail *</label>
         <input type="email" name="contact_email[]" value="{{ contact.email }}" required 
-               class="w-full px-3 py-1.5 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+               class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
     </div>
 
     <!-- Contact Phone -->
-    <div class="flex-1 space-y-1 w-full">
-        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide">Telefone *</label>
+    <div class="flex-1 space-y-2 w-full">
+        <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Telefone *</label>
         <input type="text" name="contact_phone[]" value="{{ contact.phone }}" required placeholder="(00) 00000-0000"
-               class="w-full px-3 py-1.5 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+               class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
     </div>
 
     <!-- Contact Role -->
-    <div class="flex-1 space-y-1 w-full">
-        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wide">Cargo / Função</label>
+    <div class="flex-1 space-y-2 w-full">
+        <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cargo / Função</label>
         <input type="text" name="contact_role[]" value="{{ contact.role|default:'' }}" 
-               class="w-full px-3 py-1.5 border border-slate-300 rounded-sm text-sm focus:outline-none focus:border-brand-500 bg-white text-slate-800">
+               class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
     </div>
 
     <!-- Contact Primary / Remove action -->
-    <div class="flex items-center space-x-4 h-[38px] pb-1">
+    <div class="flex items-center space-x-4 h-[44px] pb-1 w-full md:w-auto shrink-0 justify-between md:justify-start">
         <label class="inline-flex items-center cursor-pointer select-none">
-            <input type="checkbox" name="contact_is_primary[]" value="{{ index }}" class="w-4 h-4 text-brand-600 border-slate-300 rounded-sm focus:ring-brand-500" {% if contact.is_primary %}checked{% endif %}>
-            <span class="ml-1 text-xs text-slate-600 font-medium">Principal</span>
+            <input type="checkbox" name="contact_is_primary[]" value="{{ index }}" class="w-4 h-4 text-brand-600 focus:ring-brand-500/20 border-slate-200 dark:border-slate-800 rounded-md bg-white dark:bg-slate-900 focus:ring-2" {% if contact.is_primary %}checked{% endif %}>
+            <span class="ml-2 text-xs text-slate-600 dark:text-slate-400 font-medium">Principal</span>
         </label>
-        <button type="button" onclick="this.closest('.contact-row').remove()" class="text-rose-600 hover:text-rose-800 text-xs font-semibold py-1.5 px-2 border border-rose-200 rounded-sm hover:bg-rose-50 transition-all cursor-pointer">
+        <button type="button" onclick="this.closest('.contact-row').remove()" class="inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 bg-transparent border border-rose-200 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-600 dark:text-rose-400 focus:ring-rose-500 px-3 py-1.5 text-xs cursor-pointer active:scale-95">
             Remover
         </button>
     </div>

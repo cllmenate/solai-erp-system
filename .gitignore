@@ -25,3 +25,9 @@ wheels/
 
 # Temporary files
 *.tmp
+
+# Celery
+celerybeat-schedule
+celerybeat-schedule-shm
+celerybeat-schedule-wal
+

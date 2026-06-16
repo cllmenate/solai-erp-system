@@ -4,11 +4,11 @@
 {% block page_title %}Painel Principal{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
+<div class="space-y-8 animate-fade-in">
     <!-- Welcome Header Banner -->
-    <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-sm border border-slate-700 p-8 text-white relative overflow-hidden shadow-md">
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl border border-slate-800/80 p-8 text-white relative overflow-hidden shadow-lg shadow-slate-950/20">
         <div class="relative z-10 max-w-2xl">
-            <h1 class="text-3xl font-extrabold font-outfit mb-3 tracking-wide">Bem-vindo, {{ request.user.username }}!</h1>
+            <h1 class="text-3xl font-black font-outfit mb-3 tracking-tight">Bem-vindo, {{ request.user.username }}!</h1>
             <p class="text-slate-300 text-sm md:text-base leading-relaxed">
                 Este é o centro de controle geral para <strong>{{ request.tenant.trade_name|default:request.tenant.company_name }}</strong>. Monitore as operações, acesse os atalhos rápidos e gerencie seu negócio em tempo real.
             </p>
@@ -24,91 +24,91 @@
         <div class="lg:col-span-2 space-y-8">
             
             <!-- Quick Menu Section (Menu Rápido) -->
-            <div class="bg-white rounded-sm border border-slate-200 p-6 shadow-sm">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center">
-                    <svg class="h-4 w-4 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-2xl shadow-sm">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center">
+                    <svg class="h-4 w-4 mr-2 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
                     Ações & Menu Rápido
                 </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <a href="{% url 'partner_create' %}" class="flex items-center p-4 bg-slate-50 hover:bg-slate-100/80 border border-slate-100 hover:border-slate-200 rounded-sm transition-all group">
-                        <div class="p-2.5 bg-brand-50 rounded-sm mr-4 text-brand-600 group-hover:bg-brand-100 transition-colors">
+                    <a href="{% url 'partner_create' %}" class="flex items-center p-4 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800 hover:border-brand-500/30 rounded-2xl transition-all duration-300 transform hover:-translate-y-0.5 group">
+                        <div class="p-3 bg-brand-500/10 rounded-xl mr-4 text-brand-600 dark:text-brand-400 group-hover:bg-brand-500/20 transition-colors">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                             </svg>
                         </div>
                         <div>
-                            <span class="text-sm font-semibold text-slate-800 block">Cadastrar Parceiro</span>
-                            <span class="text-xs text-slate-500">Adicionar novo cliente, fornecedor ou transportadora</span>
+                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-200 block group-hover:text-brand-500 transition-colors">Cadastrar Parceiro</span>
+                            <span class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Adicionar novo cliente, fornecedor ou transportadora</span>
                         </div>
                     </a>
                     
-                    <a href="{% url 'item_create' %}" class="flex items-center p-4 bg-slate-50 hover:bg-slate-100/80 border border-slate-100 hover:border-slate-200 rounded-sm transition-all group">
-                        <div class="p-2.5 bg-brand-50 rounded-sm mr-4 text-brand-600 group-hover:bg-brand-100 transition-colors">
+                    <a href="{% url 'item_create' %}" class="flex items-center p-4 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800 hover:border-brand-500/30 rounded-2xl transition-all duration-300 transform hover:-translate-y-0.5 group">
+                        <div class="p-3 bg-brand-500/10 rounded-xl mr-4 text-brand-600 dark:text-brand-400 group-hover:bg-brand-500/20 transition-colors">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                             </svg>
                         </div>
                         <div>
-                            <span class="text-sm font-semibold text-slate-800 block">Cadastrar Novo Item</span>
-                            <span class="text-xs text-slate-500">Adicionar produto ao inventário ou catálogo</span>
+                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-200 block group-hover:text-brand-500 transition-colors">Cadastrar Novo Item</span>
+                            <span class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Adicionar produto ao inventário ou catálogo</span>
                         </div>
                     </a>
                     
-                    <a href="{% url 'partner_list' %}" class="flex items-center p-4 bg-slate-50 hover:bg-slate-100/80 border border-slate-100 hover:border-slate-200 rounded-sm transition-all group">
-                        <div class="p-2.5 bg-slate-200/60 rounded-sm mr-4 text-slate-600 group-hover:bg-slate-300/60 transition-colors">
+                    <a href="{% url 'partner_list' %}" class="flex items-center p-4 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800 hover:border-brand-500/30 rounded-2xl transition-all duration-300 transform hover:-translate-y-0.5 group">
+                        <div class="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl mr-4 text-slate-600 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-colors">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                         </div>
                         <div>
-                            <span class="text-sm font-semibold text-slate-800 block">Gerenciar Parceiros</span>
-                            <span class="text-xs text-slate-500">Visualizar base de clientes e fornecedores</span>
+                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-200 block group-hover:text-brand-500 transition-colors">Gerenciar Parceiros</span>
+                            <span class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Visualizar base de clientes e fornecedores</span>
                         </div>
                     </a>
 
-                    <a href="{% url 'item_list' %}" class="flex items-center p-4 bg-slate-50 hover:bg-slate-100/80 border border-slate-100 hover:border-slate-200 rounded-sm transition-all group">
-                        <div class="p-2.5 bg-slate-200/60 rounded-sm mr-4 text-slate-600 group-hover:bg-slate-300/60 transition-colors">
+                    <a href="{% url 'item_list' %}" class="flex items-center p-4 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800 hover:border-brand-500/30 rounded-2xl transition-all duration-300 transform hover:-translate-y-0.5 group">
+                        <div class="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl mr-4 text-slate-600 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-colors">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                             </svg>
                         </div>
                         <div>
-                            <span class="text-sm font-semibold text-slate-800 block">Visualizar Estoque</span>
-                            <span class="text-xs text-slate-500">Monitorar níveis de inventário e lotes</span>
+                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-200 block group-hover:text-brand-500 transition-colors">Visualizar Estoque</span>
+                            <span class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Monitorar níveis de inventário e lotes</span>
                         </div>
                     </a>
                 </div>
             </div>
 
             <!-- Bulletin Board (Quadro de Avisos) -->
-            <div class="bg-white rounded-sm border border-slate-200 p-6 shadow-sm">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center">
-                    <svg class="h-4 w-4 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-2xl shadow-sm">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center">
+                    <svg class="h-4 w-4 mr-2 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                     Quadro de Avisos & Notas Internas
                 </h2>
                 <div class="space-y-4">
-                    <!-- Default Notice 1 -->
-                    <div class="p-4 bg-amber-50/55 border-l-4 border-amber-400 rounded-sm">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs font-semibold text-amber-800">Atualização do Sistema: Sprint 1.6</span>
-                            <span class="text-[10px] text-slate-400">Hoje</span>
+                    <!-- Notice 1 -->
+                    <div class="p-4 bg-amber-500/10 border-l-4 border-amber-500 rounded-xl">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Atualização do Sistema: Sprint 1.6</span>
+                            <span class="text-[10px] text-slate-400 font-medium">Hoje</span>
                         </div>
-                        <p class="text-xs text-slate-700 leading-relaxed">
+                        <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                             Foram disponibilizados novos recursos de gerenciamento auxiliar sob "Estoque & Ativos" para cadastro de Marcas, Categorias, Modelos e controle de Lotes. Verifique as novas opções na barra lateral.
                         </p>
                     </div>
 
-                    <!-- Default Notice 2 -->
-                    <div class="p-4 bg-slate-50 border-l-4 border-slate-400 rounded-sm">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs font-semibold text-slate-800">Boas-vindas ao SolAI ERP</span>
-                            <span class="text-[10px] text-slate-400">Ontem</span>
+                    <!-- Notice 2 -->
+                    <div class="p-4 bg-slate-50/50 dark:bg-slate-950/20 border-l-4 border-slate-400 dark:border-slate-800 rounded-xl">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Boas-vindas ao SolAI ERP</span>
+                            <span class="text-[10px] text-slate-400 font-medium font-semibold">Ontem</span>
                         </div>
-                        <p class="text-xs text-slate-600 leading-relaxed">
+                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                             O sistema SaaS básico está operacional. Em caso de dúvidas sobre parametrizações e integrações iniciais, entre em contato com o administrador de TI da plataforma.
                         </p>
                     </div>
@@ -121,9 +121,9 @@
         <div class="space-y-8">
             
             <!-- Dashboard KPIs Panel -->
-            <div class="bg-white rounded-sm border border-slate-200 p-6 shadow-sm flex flex-col h-full">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6 flex items-center">
-                    <svg class="h-4 w-4 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-2xl shadow-sm flex flex-col h-full">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center">
+                    <svg class="h-4 w-4 mr-2 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                     Painel de Indicadores (KPIs)
@@ -131,25 +131,23 @@
                 
                 <div class="space-y-6 flex-1 flex flex-col justify-center">
                     <!-- KPI Card Placeholder 1 -->
-                    <div class="text-center p-4 border border-dashed border-slate-200 bg-slate-50/55 rounded-sm">
-                        <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Faturamento Geral</p>
-                        <p class="text-2xl font-bold font-outfit text-slate-400 mt-1">R$ --,--</p>
-                        <span class="text-[10px] text-slate-400 block mt-2">Aguardando dados de faturamento</span>
+                    <div class="text-center p-5 border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 rounded-2xl">
+                        <p class="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-bold">Faturamento Geral</p>
+                        <p class="text-2xl font-black font-outfit text-slate-350 dark:text-slate-650 mt-1">R$ --,--</p>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 block mt-2">Aguardando dados de faturamento</span>
                     </div>
 
                     <!-- KPI Card Placeholder 2 -->
-                    <div class="text-center p-4 border border-dashed border-slate-200 bg-slate-50/55 rounded-sm">
-                        <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Giro de Inventário</p>
-                        <p class="text-2xl font-bold font-outfit text-slate-400 mt-1">-- %</p>
-                        <span class="text-[10px] text-slate-400 block mt-2">Aguardando controle de movimentação</span>
+                    <div class="text-center p-5 border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 rounded-2xl">
+                        <p class="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-bold">Giro de Inventário</p>
+                        <p class="text-2xl font-black font-outfit text-slate-350 dark:text-slate-650 mt-1">-- %</p>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 block mt-2">Aguardando controle de movimentação</span>
                     </div>
 
                     <!-- KPI Card Placeholder 3 -->
-                    <div class="text-center p-4 border border-dashed border-slate-200 bg-slate-50/55 rounded-sm">
-                        <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Nível de Autonomia da IA</p>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200 mt-2">
-                            {{ request.tenant.ai_autonomy_level|default:"Assistivo" }}
-                        </span>
+                    <div class="text-center p-5 border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/20 rounded-2xl">
+                        <p class="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-bold mb-3">Nível de Autonomia da IA</p>
+                        {% include "components/badge.html" with variant="info" label=request.tenant.ai_autonomy_level|default:"Assistivo" %}
                     </div>
                 </div>
             </div>

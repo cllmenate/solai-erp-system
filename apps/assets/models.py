@@ -2,7 +2,7 @@ from barcode.ean import EuropeanArticleNumber13
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from apps.core.models import BaseModel, Tenant
+from apps.core.models import BaseModel
 
 
 class Brand(BaseModel):
@@ -10,7 +10,7 @@ class Brand(BaseModel):
     Brand represents the manufacturer or brand name of item models.
     """
     tenant = models.ForeignKey(
-        Tenant,
+        "core.Tenant",
         on_delete=models.CASCADE,
         related_name="brands",
     )
@@ -37,7 +37,7 @@ class TechSheetTemplate(BaseModel):
     ]
 
     tenant = models.ForeignKey(
-        Tenant,
+        "core.Tenant",
         on_delete=models.CASCADE,
         related_name="tech_sheet_templates",
     )
@@ -91,7 +91,7 @@ class Category(BaseModel):
     Hierarchical category taxonomy for catalog items. Max depth is 3.
     """
     tenant = models.ForeignKey(
-        Tenant,
+        "core.Tenant",
         on_delete=models.CASCADE,
         related_name="categories",
     )
@@ -143,7 +143,7 @@ class Model(BaseModel):
     Item model (e.g. iPhone 15 Pro, Organic Sugar 1kg) belonging to a brand & categories.
     """
     tenant = models.ForeignKey(
-        Tenant,
+        "core.Tenant",
         on_delete=models.CASCADE,
         related_name="item_models",
     )
@@ -213,7 +213,7 @@ class Item(BaseModel):
     ]
 
     tenant = models.ForeignKey(
-        Tenant,
+        "core.Tenant",
         on_delete=models.CASCADE,
         related_name="items",
     )
@@ -327,6 +327,7 @@ class Batch(BaseModel):
         ("active", "Ativo"),
         ("expired", "Expirado"),
         ("discarded", "Descartado"),
+        ("depleted", "Esgotado"),
     ]
 
     item = models.ForeignKey(
@@ -374,6 +375,10 @@ class Batch(BaseModel):
         # BATCH-03: stock_quantity cannot be negative
         if self.stock_quantity < 0:
             raise ValidationError("A quantidade em estoque não pode ser negativa.")
+
+        # ASSET-006: Mark as depleted when stock_quantity reaches zero
+        if self.stock_quantity == 0 and self.status == "active":
+            self.status = "depleted"
 
         # Check if expiration date has passed and update status to expired (BATCH-01)
         from django.utils import timezone

@@ -9,29 +9,30 @@
 {% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
-    <div class="mb-6">
-        <a href="{% url 'batch_list' %}" class="inline-flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
-            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Voltar para Lista
-        </a>
+<div class="max-w-3xl mx-auto space-y-6 animate-fade-in">
+    <div class="flex items-center justify-between mb-4">
+        {% url 'batch_list' as list_url %}
+        {% include "components/btn.html" with variant="secondary" label="Voltar" href=list_url icon="back" %}
+        
+        <div class="flex items-center gap-3">
+            {% include "components/btn.html" with variant="ghost" label="Cancelar" href=list_url icon="cancel" %}
+            {% include "components/btn.html" with type="submit" label="Salvar" variant="primary" icon="save" extra_attrs='form="main-form"' %}
+        </div>
     </div>
 
-    <div class="bg-white rounded-sm border border-slate-200 shadow-sm p-8">
-        <form method="POST" class="space-y-6">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-sm rounded-2xl p-6 md:p-8">
+        <form method="POST" id="main-form" class="space-y-6">
             {% csrf_token %}
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Item Select -->
-                <div class="space-y-1.5">
-                    <label for="item" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Item / SKU *</label>
+                <div class="flex flex-col gap-1.5 w-full">
+                    <label for="item" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Item / SKU <span class="text-rose-500">*</span></label>
                     <select 
                         name="item" 
                         id="item" 
                         required 
-                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm bg-white"
+                        class="w-full px-4 py-3 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 focus:border-brand-500 focus:ring-brand-500/20 rounded-xl text-sm text-slate-900 dark:text-slate-100 transition-all duration-200 focus:outline-none focus:ring-4"
                     >
                         <option value="">Selecione um Item</option>
                         {% for item in items %}
@@ -43,8 +44,8 @@
                 </div>
 
                 <!-- Batch Code -->
-                <div class="space-y-1.5">
-                    <label for="batch_code" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Código do Lote *</label>
+                <div class="flex flex-col gap-1.5 w-full">
+                    <label for="batch_code" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Código do Lote <span class="text-rose-500">*</span></label>
                     <input 
                         type="text" 
                         name="batch_code" 
@@ -52,43 +53,43 @@
                         required 
                         value="{{ batch.batch_code|default:'' }}"
                         placeholder="Ex: LOT-2026-A"
-                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-mono"
+                        class="w-full px-4 py-3 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 focus:border-brand-500 focus:ring-brand-500/20 rounded-xl text-sm text-slate-900 dark:text-slate-100 transition-all duration-200 focus:outline-none focus:ring-4 font-mono"
                     >
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Manufacture Date -->
-                <div class="space-y-1.5">
-                    <label for="manufacture_date" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Data de Fabricação *</label>
+                <div class="flex flex-col gap-1.5 w-full">
+                    <label for="manufacture_date" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data de Fabricação <span class="text-rose-500">*</span></label>
                     <input 
                         type="date" 
                         name="manufacture_date" 
                         id="manufacture_date" 
                         required 
                         value="{{ batch.manufacture_date|date:'Y-m-d'|default:'' }}"
-                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-mono"
+                        class="w-full px-4 py-3 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 focus:border-brand-500 focus:ring-brand-500/20 rounded-xl text-sm text-slate-900 dark:text-slate-100 transition-all duration-200 focus:outline-none focus:ring-4 font-mono"
                     >
                 </div>
 
                 <!-- Expiry Date -->
-                <div class="space-y-1.5">
-                    <label for="expiry_date" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Data de Validade *</label>
+                <div class="flex flex-col gap-1.5 w-full">
+                    <label for="expiry_date" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data de Validade <span class="text-rose-500">*</span></label>
                     <input 
                         type="date" 
                         name="expiry_date" 
                         id="expiry_date" 
                         required 
                         value="{{ batch.expiry_date|date:'Y-m-d'|default:'' }}"
-                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-mono"
+                        class="w-full px-4 py-3 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 focus:border-brand-500 focus:ring-brand-500/20 rounded-xl text-sm text-slate-900 dark:text-slate-100 transition-all duration-200 focus:outline-none focus:ring-4 font-mono"
                     >
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Total Quantity -->
-                <div class="space-y-1.5">
-                    <label for="total_quantity" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Quantidade Total *</label>
+                <div class="flex flex-col gap-1.5 w-full">
+                    <label for="total_quantity" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Quantidade Total <span class="text-rose-500">*</span></label>
                     <input 
                         type="number" 
                         step="0.001"
@@ -97,13 +98,13 @@
                         required 
                         value="{{ batch.total_quantity|default:'' }}"
                         placeholder="Ex: 100.000"
-                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-mono"
+                        class="w-full px-4 py-3 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 focus:border-brand-500 focus:ring-brand-500/20 rounded-xl text-sm text-slate-900 dark:text-slate-100 transition-all duration-200 focus:outline-none focus:ring-4 font-mono"
                     >
                 </div>
 
                 <!-- Stock Quantity -->
-                <div class="space-y-1.5">
-                    <label for="stock_quantity" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Quantidade em Estoque *</label>
+                <div class="flex flex-col gap-1.5 w-full">
+                    <label for="stock_quantity" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Quantidade em Estoque <span class="text-rose-500">*</span></label>
                     <input 
                         type="number" 
                         step="0.001"
@@ -112,18 +113,18 @@
                         required 
                         value="{{ batch.stock_quantity|default:'' }}"
                         placeholder="Ex: 85.500"
-                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm font-mono"
+                        class="w-full px-4 py-3 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 focus:border-brand-500 focus:ring-brand-500/20 rounded-xl text-sm text-slate-900 dark:text-slate-100 transition-all duration-200 focus:outline-none focus:ring-4 font-mono"
                     >
                 </div>
 
                 <!-- Status -->
-                <div class="space-y-1.5">
-                    <label for="status" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Status *</label>
+                <div class="flex flex-col gap-1.5 w-full">
+                    <label for="status" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status <span class="text-rose-500">*</span></label>
                     <select 
                         name="status" 
                         id="status" 
                         required 
-                        class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm bg-white"
+                        class="w-full px-4 py-3 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 focus:border-brand-500 focus:ring-brand-500/20 rounded-xl text-sm text-slate-900 dark:text-slate-100 transition-all duration-200 focus:outline-none focus:ring-4"
                     >
                         {% for val, label in status_choices %}
                             <option value="{{ val }}" {% if batch.status == val %}selected{% endif %}>
@@ -135,87 +136,79 @@
             </div>
 
             <!-- Description -->
-            <div class="space-y-1.5">
-                <label for="description" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Descrição / Notas</label>
+            <div class="flex flex-col gap-1.5 w-full">
+                <label for="description" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Descrição / Notas</label>
                 <textarea 
                     name="description" 
                     id="description" 
                     rows="3"
                     placeholder="Descrição sobre o lote"
-                    class="w-full border border-slate-300 rounded-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-sm"
+                    class="w-full px-4 py-3 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 focus:border-brand-500 focus:ring-brand-500/20 rounded-xl text-sm text-slate-900 dark:text-slate-100 transition-all duration-200 focus:outline-none focus:ring-4"
                 >{{ batch.description|default:'' }}</textarea>
             </div>
 
-            <div class="pt-4 border-t border-slate-200 flex justify-end">
-                <button 
-                    type="submit" 
-                    class="inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-semibold rounded-sm text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-colors shadow-sm"
-                >
-                    Salvar Lote
-                </button>
+            <div class="pt-4 border-t border-slate-200/80 dark:border-slate-800/80 flex justify-end space-x-3">
+                {% include "components/btn.html" with variant="outline" label="Cancelar" href=list_url icon="cancel" %}
+                {% include "components/btn.html" with type="submit" label="Salvar" variant="primary" icon="save" %}
             </div>
         </form>
     </div>
 
     <!-- Batch Audit Trail Section -->
     {% if batch and audit_history %}
-    <div class="bg-white rounded-sm border border-slate-200 p-6 shadow-sm mt-8">
-        <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center">
-            <svg class="h-4 w-4 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm">
+        <h2 class="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center">
+            <svg class="h-5 w-5 mr-2 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Trilha de Auditoria do Lote (Histórico de Alterações)
         </h2>
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                    <tr class="border-b border-slate-100">
-                        <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Data / Hora</th>
-                        <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Usuário</th>
-                        <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Operação</th>
-                        <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Modificações</th>
+                    <tr class="border-b border-slate-200/85 dark:border-slate-800 pb-2">
+                        <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data / Hora</th>
+                        <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Usuário</th>
+                        <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Operação</th>
+                        <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Modificações</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50 text-xs">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-850">
                     {% for log in audit_history %}
-                        <tr class="hover:bg-slate-50/50 transition-colors">
-                            <td class="py-3 text-slate-500">{{ log.date|date:"d/m/Y H:i:s" }}</td>
-                            <td class="py-3 font-semibold text-slate-800">{{ log.user.username|default:"Sistema" }}</td>
-                            <td class="py-3">
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">{{ log.date|date:"d/m/Y H:i:s" }}</td>
+                            <td class="py-3 font-semibold text-slate-800 dark:text-slate-200">{{ log.user.username|default:"Sistema" }}</td>
+                            <td class="py-3 whitespace-nowrap">
                                 {% if log.type == 'create' %}
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-bold bg-emerald-50 text-emerald-700">
-                                        Criação
-                                    </span>
+                                    {% include "components/badge.html" with variant="success" label="Criação" %}
                                 {% else %}
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-bold bg-amber-50 text-amber-700">
-                                        Atualização
-                                    </span>
+                                    {% include "components/badge.html" with variant="warning" label="Atualização" %}
                                 {% endif %}
                             </td>
                             <td class="py-3">
                                 {% if log.fields %}
-                                    <ul class="list-disc list-inside space-y-1 text-slate-600">
+                                    <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-400">
                                         {% for field in log.fields %}
                                             <li>
-                                                <strong class="text-slate-700">{{ field.field }}:</strong> 
-                                                <span class="text-rose-600 font-mono">{{ field.old|default:"(vazio)" }}</span> 
+                                                <strong class="text-slate-700 dark:text-slate-300 font-medium">{{ field.field }}:</strong> 
+                                                <span class="text-rose-500 font-mono">{{ field.old|default:"(vazio)" }}</span> 
                                                 &rarr; 
-                                                <span class="text-emerald-600 font-mono">{{ field.new|default:"(vazio)" }}</span>
+                                                <span class="text-emerald-500 font-mono">{{ field.new|default:"(vazio)" }}</span>
                                             </li>
                                         {% endfor %}
                                     </ul>
                                 {% else %}
                                     {% if log.type == 'create' %}
-                                        <span class="text-slate-400 italic">Registro inicial do lote</span>
+                                        <span class="text-slate-400 dark:text-slate-500 italic">Registro inicial do lote</span>
                                     {% else %}
-                                        <span class="text-slate-400 italic">Nenhum campo alterado</span>
+                                        <span class="text-slate-400 dark:text-slate-500 italic">Nenhum campo alterado</span>
                                     {% endif %}
                                 {% endif %}
                             </td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="4" class="py-6 text-center text-slate-400">Nenhum registro de auditoria disponível.</td>
+                            <td colspan="4" class="py-6 text-center text-slate-400 dark:text-slate-500">Nenhum registro de auditoria disponível.</td>
                         </tr>
                     {% endfor %}
                 </tbody>

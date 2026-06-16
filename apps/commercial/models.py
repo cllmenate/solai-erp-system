@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from validate_docbr import CNPJ, CPF
 
-from apps.core.models import BaseModel, Tenant
+from apps.core.models import BaseModel
 
 
 def validate_document(value):
@@ -34,7 +34,7 @@ class Partner(BaseModel):
     ]
 
     tenant = models.ForeignKey(
-        Tenant,
+        "core.Tenant",
         on_delete=models.CASCADE,
         related_name="partners",
     )

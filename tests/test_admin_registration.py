@@ -1,16 +1,15 @@
-from django.contrib import admin
-from django.test import RequestFactory, Client
-from django.urls import reverse
-import pytest
+from datetime import timedelta
 
-from apps.core.models import Tenant, User, Role
-from apps.commercial.models import Partner, Contact, Address
-from apps.assets.models import Brand, Category, TechSheetTemplate, Model, Item, Batch
+import pytest
+from django.contrib import admin
+from django.test import RequestFactory
+from django.utils import timezone
+
+from apps.assets.models import Batch, Brand, Category, Item, Model, TechSheetTemplate
+from apps.commercial.models import Address, Contact, Partner
+from apps.core.models import Role, Tenant, User
 from shared.middleware.tenant import TenantMiddleware
 
-
-from django.utils import timezone
-from datetime import timedelta
 
 @pytest.mark.django_db
 class TestAdminRegistration:
@@ -44,7 +43,7 @@ class TestAdminRegistration:
         """
         # Create a tenant
         trial_ends = timezone.now() + timedelta(days=14)
-        tenant = Tenant.objects.create(
+        _tenant = Tenant.objects.create(
             company_name="Blocked Tenant Corp",
             trade_name="Blocked Tenant",
             cnpj="00.000.000/0001-00",

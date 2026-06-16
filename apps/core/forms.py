@@ -4,13 +4,62 @@ from django.contrib.auth import get_user_model
 from apps.core.models import Role, Sector
 
 
-class RoleForm(forms.ModelForm):
+def apply_design_system_styles(form):
+    """
+    Applies standard Tailwind classes for the design system (HeroUI-inspired)
+    to the widgets of the form, preventing duplication in individual forms.
+    """
+    for _field_name, field in form.fields.items():
+        widget = field.widget
+        
+        # Check widget type to determine base classes
+        if isinstance(widget, forms.CheckboxInput):
+            base_class = "h-4 w-4 text-brand-600 focus:ring-brand-500/20 border-slate-200 dark:border-slate-800 rounded-md bg-slate-100/60 dark:bg-slate-900/60 focus:ring-2"
+        elif isinstance(widget, forms.Textarea):
+            base_class = "w-full px-4 py-3 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200"
+            if "rows" not in widget.attrs:
+                widget.attrs["rows"] = 3
+        else:
+            base_class = "w-full px-4 py-3 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200"
+            
+        widget.attrs["class"] = base_class
+
+
+class DesignSystemFormMixin:
+    """
+    Mixin that dynamically styles form widgets and applies error styling
+    when the field has validation errors.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        apply_design_system_styles(self)
+
+    def __getitem__(self, name):
+        bound_field = super().__getitem__(name)
+        if self.is_bound and bound_field.errors:
+            widget = bound_field.field.widget
+            css_class = widget.attrs.get("class", "")
+            
+            # Use red/amber borders for inputs with errors
+            if isinstance(widget, forms.CheckboxInput):
+                if "border-rose-500" not in css_class:
+                    css_class = css_class.replace("border-slate-200", "border-rose-500 dark:border-rose-500")
+                    css_class = css_class.replace("focus:ring-brand-500/20", "focus:ring-rose-500/20")
+                    widget.attrs["class"] = css_class
+            else:
+                if "border-rose-500" not in css_class:
+                    css_class = css_class.replace("border-slate-200", "border-rose-500 dark:border-rose-500")
+                    css_class = css_class.replace("dark:border-slate-800", "")
+                    css_class = css_class.replace("focus:ring-brand-500/20", "focus:ring-rose-500/20")
+                    css_class = css_class.replace("focus:border-brand-500", "focus:border-rose-500")
+                    widget.attrs["class"] = css_class
+        return bound_field
+
+
+class RoleForm(DesignSystemFormMixin, forms.ModelForm):
     sector = forms.ModelChoiceField(
         queryset=Sector.objects.none(),
         label="Setor",
-        widget=forms.Select(attrs={
-            "class": "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-brand-500",
-        })
     )
 
     class Meta:
@@ -18,20 +67,11 @@ class RoleForm(forms.ModelForm):
         fields = ["name", "sector", "level", "description", "is_active"]
         widgets = {
             "name": forms.TextInput(attrs={
-                "class": "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-brand-500",
                 "placeholder": "Ex: Gerente de Vendas"
             }),
-            "level": forms.Select(attrs={
-                "class": "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-brand-500",
-            }),
             "description": forms.Textarea(attrs={
-                "class": "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-brand-500",
-                "rows": 3,
                 "placeholder": "Breve descrição das responsabilidades do cargo"
             }),
-            "is_active": forms.CheckboxInput(attrs={
-                "class": "h-4 w-4 text-brand-600 focus:ring-brand-500 border-slate-300 dark:border-slate-800 rounded-sm bg-slate-50 dark:bg-slate-900"
-            })
         }
 
     def __init__(self, *args, **kwargs):
@@ -62,13 +102,10 @@ class RoleForm(forms.ModelForm):
         return friendly_name
 
 
-class UserForm(forms.ModelForm):
+class UserForm(DesignSystemFormMixin, forms.ModelForm):
     role = forms.ModelChoiceField(
         queryset=Role.objects.none(),
         label="Cargo",
-        widget=forms.Select(attrs={
-            "class": "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-brand-500",
-        })
     )
 
     class Meta:
@@ -76,20 +113,14 @@ class UserForm(forms.ModelForm):
         fields = ["username", "email", "full_name", "role", "is_active"]
         widgets = {
             "username": forms.TextInput(attrs={
-                "class": "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-brand-500",
                 "placeholder": "Ex: joao.silva"
             }),
             "email": forms.EmailInput(attrs={
-                "class": "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-brand-500",
                 "placeholder": "Ex: joao@empresa.com"
             }),
             "full_name": forms.TextInput(attrs={
-                "class": "w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-brand-500",
                 "placeholder": "Ex: João Silva"
             }),
-            "is_active": forms.CheckboxInput(attrs={
-                "class": "h-4 w-4 text-brand-600 focus:ring-brand-500 border-slate-300 dark:border-slate-800 rounded-sm bg-slate-50 dark:bg-slate-900"
-            })
         }
 
     def __init__(self, *args, **kwargs):

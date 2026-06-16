@@ -4,159 +4,155 @@
 {% block page_title %}Dashboard de Estoque & Inventário{% endblock %}
 
 {% block content %}
-<div class="space-y-8 font-sans">
+<div class="space-y-6 animate-fade-in">
     <!-- Header Summary Card -->
-    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-950 rounded-sm border border-slate-700 p-8 text-white relative overflow-hidden shadow-lg transition-all duration-300">
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-950 rounded-2xl border border-slate-800 p-8 text-white relative overflow-hidden shadow-lg transition-all duration-300">
         <div class="relative z-10 max-w-3xl">
-            <h1 class="text-3xl font-extrabold font-outfit mb-3 tracking-wide">Painel Consolidado de Estoque</h1>
-            <p class="text-slate-300 text-sm md:text-base leading-relaxed">
-                Monitore o inventário geral do tenant <strong>{{ request.tenant.trade_name|default:request.tenant.company_name }}</strong>. Controle validades de lotes, acompanhe alertas de estoque mínimo e gerencie a distribuição por categorias.
+            <h1 class="text-3xl font-bold font-outfit mb-3 tracking-wide">Painel Consolidado de Estoque</h1>
+            <p class="text-slate-350 text-sm md:text-base leading-relaxed font-light">
+                Monitore o inventário geral do tenant <strong class="text-white font-medium">{{ request.tenant.trade_name|default:request.tenant.company_name }}</strong>. Controle validades de lotes, acompanhe alertas de estoque mínimo e gerencie a distribuição por categorias.
             </p>
         </div>
-        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-brand-500/10 rounded-full blur-3xl"></div>
     </div>
 
     <!-- Metrics Cards Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Metric Item Count -->
-        <div class="bg-white rounded-sm border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-sm rounded-2xl hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5">
             <div class="flex items-center justify-between mb-4">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Itens Únicos</span>
-                <div class="p-2 bg-slate-100 rounded-sm text-slate-600">
+                <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Itens Únicos</span>
+                <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
                 </div>
             </div>
-            <p class="text-3xl font-extrabold text-slate-800 font-outfit">{{ total_items }}</p>
-            <span class="text-[10px] text-slate-500 block mt-2">Cadastrados no catálogo</span>
+            <p class="text-3xl font-bold text-slate-900 dark:text-white font-outfit">{{ total_items }}</p>
+            <span class="text-xs text-slate-500 dark:text-slate-450 block mt-2">Cadastrados no catálogo</span>
         </div>
 
         <!-- Metric Quantity In Stock -->
-        <div class="bg-white rounded-sm border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-sm rounded-2xl hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5">
             <div class="flex items-center justify-between mb-4">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Estoque Total</span>
-                <div class="p-2 bg-emerald-50 rounded-sm text-emerald-600">
+                <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Estoque Total</span>
+                <div class="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 rounded-xl">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                 </div>
             </div>
-            <p class="text-3xl font-extrabold text-slate-800 font-outfit">{{ total_qty|floatformat:2 }}</p>
-            <span class="text-[10px] text-slate-500 block mt-2">Unidades físicas totais</span>
+            <p class="text-3xl font-bold text-slate-900 dark:text-white font-outfit">{{ total_qty|floatformat:2 }}</p>
+            <span class="text-xs text-slate-500 dark:text-slate-450 block mt-2">Unidades físicas totais</span>
         </div>
 
         <!-- Metric Value -->
-        <div class="bg-white rounded-sm border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-sm rounded-2xl hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5">
             <div class="flex items-center justify-between mb-4">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Valor em Estoque</span>
-                <div class="p-2 bg-blue-50 rounded-sm text-blue-600">
+                <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Valor em Estoque</span>
+                <div class="p-2 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 rounded-xl">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M12 16v-1" />
                     </svg>
                 </div>
             </div>
-            <p class="text-3xl font-extrabold text-slate-800 font-outfit">R$ {{ total_value|floatformat:2 }}</p>
-            <span class="text-[10px] text-slate-500 block mt-2">Baseado no preço de aquisição</span>
+            <p class="text-3xl font-bold text-slate-900 dark:text-white font-outfit">R$ {{ total_value|floatformat:2 }}</p>
+            <span class="text-xs text-slate-500 dark:text-slate-450 block mt-2">Baseado no preço de aquisição</span>
         </div>
 
         <!-- Metric Expiration Alerts -->
-        <div class="bg-white rounded-sm border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 shadow-sm rounded-2xl hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5">
             <div class="flex items-center justify-between mb-4">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Lotes Críticos / Alertas</span>
-                <div class="p-2 {% if total_expiration_alerts or low_stock_count %}bg-rose-50 text-rose-600{% else %}bg-slate-100 text-slate-600{% endif %} rounded-sm">
+                <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Lotes Críticos / Alertas</span>
+                <div class="p-2 {% if total_expiration_alerts or low_stock_count %}bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-450{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400{% endif %} rounded-xl">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                 </div>
             </div>
-            <p class="text-3xl font-extrabold {% if total_expiration_alerts or low_stock_count %}text-rose-600{% else %}text-slate-800{% endif %} font-outfit">
+            <p class="text-3xl font-bold {% if total_expiration_alerts or low_stock_count %}text-rose-600 dark:text-rose-550{% else %}text-slate-900 dark:text-white{% endif %} font-outfit">
                 {{ total_expiration_alerts|add:low_stock_count }}
             </p>
-            <span class="text-[10px] text-slate-500 block mt-2">
+            <span class="text-xs text-slate-500 dark:text-slate-450 block mt-2">
                 {{ expired_count }} vencidos | {{ low_stock_count }} abaixo do mínimo
             </span>
         </div>
     </div>
 
     <!-- Main Dynamic Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <!-- Left: Alerts (Expiration & Low Stock) -->
-        <div class="lg:col-span-1 space-y-8">
+        <div class="lg:col-span-1 space-y-6">
             <!-- Low Stock Warnings Panel -->
-            <div class="bg-white rounded-sm border border-slate-200 p-6 shadow-sm">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center">
-                    <svg class="h-4 w-4 mr-2 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 shadow-sm rounded-2xl">
+                <h2 class="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center">
+                    <svg class="h-5 w-5 mr-2 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Abaixo do Estoque Mínimo ({{ low_stock_count }})
                 </h2>
                 {% if low_stock_items %}
-                    <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1">
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800/60 max-h-80 overflow-y-auto pr-1">
                         {% for item_info in low_stock_items %}
-                            <div class="py-3 flex justify-between items-center group">
+                            <div class="py-3.5 flex justify-between items-center group">
                                 <div>
-                                    <a href="{% url 'item_detail' item_info.item.id %}" class="text-xs font-bold text-slate-800 hover:text-brand-600 transition-colors">
+                                    <a href="{% url 'item_detail' item_info.item.id %}" class="text-sm font-semibold text-slate-900 dark:text-white hover:text-brand-500 transition-colors">
                                         {{ item_info.item.name }}
                                     </a>
-                                    <p class="text-[10px] text-slate-400">SKU: {{ item_info.item.sku }}</p>
+                                    <p class="text-xs text-slate-400 dark:text-slate-500 font-mono mt-0.5">SKU: {{ item_info.item.sku }}</p>
                                 </div>
                                 <div class="text-right">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-100">
-                                        {{ item_info.current_stock|floatformat:1 }} / {{ item_info.minimum_stock|floatformat:1 }}
-                                    </span>
+                                    {% include "components/badge.html" with variant="danger" label=item_info.current_stock|floatformat:1|add:" / "|add:item_info.minimum_stock|floatformat:1 %}
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-xs text-slate-400 py-4 text-center">Nenhum item abaixo do estoque mínimo.</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 py-6 text-center">Nenhum item abaixo do estoque mínimo.</p>
                 {% endif %}
             </div>
 
             <!-- Expiration Warnings Panel -->
-            <div class="bg-white rounded-sm border border-slate-200 p-6 shadow-sm">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center">
-                    <svg class="h-4 w-4 mr-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 shadow-sm rounded-2xl">
+                <h2 class="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center">
+                    <svg class="h-5 w-5 mr-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Alertas de Validade ({{ total_expiration_alerts }})
                 </h2>
                 {% if expiring_batches %}
-                    <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1">
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800/60 max-h-80 overflow-y-auto pr-1">
                         {% for batch in expiring_batches %}
-                            <div class="py-3 flex justify-between items-center">
+                            <div class="py-3.5 flex justify-between items-center">
                                 <div>
-                                    <p class="text-xs font-bold text-slate-800">{{ batch.item.name }}</p>
-                                    <p class="text-[10px] text-slate-400">Lote: {{ batch.batch_code }} | Qtd: {{ batch.stock_quantity|floatformat:1 }}</p>
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ batch.item.name }}</p>
+                                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Lote: {{ batch.batch_code }} | Qtd: {{ batch.stock_quantity|floatformat:1 }}</p>
                                 </div>
                                 <div class="text-right">
                                     {% if batch.status == 'expired' %}
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-bold bg-rose-100 text-rose-700">
-                                            Expirado
-                                        </span>
+                                        {% include "components/badge.html" with variant="danger" label="Expirado" %}
                                     {% else %}
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                            Expira {{ batch.expiry_date|date:"d/m/Y" }}
-                                        </span>
+                                        {% with exp_date=batch.expiry_date|date:"d/m/Y" %}
+                                            {% include "components/badge.html" with variant="warning" label="Vence "|add:exp_date %}
+                                        {% endwith %}
                                     {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-xs text-slate-400 py-4 text-center">Nenhum lote crítico ou próximo de vencer.</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 py-6 text-center">Nenhum lote crítico ou próximo de vencer.</p>
                 {% endif %}
             </div>
         </div>
 
         <!-- Right: Category Consolidated & Full Item Table -->
-        <div class="lg:col-span-2 space-y-8">
+        <div class="lg:col-span-2 space-y-6">
             <!-- Consolidated Categories -->
-            <div class="bg-white rounded-sm border border-slate-200 p-6 shadow-sm">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center">
-                    <svg class="h-4 w-4 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 shadow-sm rounded-2xl">
+                <h2 class="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center">
+                    <svg class="h-5 w-5 mr-2 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                     Distribuição por Categoria
@@ -164,81 +160,73 @@
                 {% if category_data %}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {% for data in category_data %}
-                            <div class="p-4 bg-slate-50/50 border border-slate-100 rounded-sm flex justify-between items-center hover:bg-slate-50 transition-colors">
+                            <div class="p-4 bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/60 rounded-xl flex justify-between items-center hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
                                 <div>
-                                    <p class="text-xs font-extrabold text-slate-800">{{ data.category.name }}</p>
-                                    <p class="text-[10px] text-slate-400">{{ data.items_count }} itens vinculados</p>
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ data.category.name }}</p>
+                                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{{ data.items_count }} itens vinculados</p>
                                 </div>
                                 <div class="text-right">
-                                    <span class="text-sm font-extrabold text-slate-700 font-outfit">{{ data.total_quantity|floatformat:1 }} un</span>
+                                    <span class="text-sm font-bold text-slate-700 dark:text-slate-350 font-outfit">{{ data.total_quantity|floatformat:1 }} un</span>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-xs text-slate-400 py-4 text-center">Nenhuma categoria cadastrada ou com estoque ativo.</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 py-6 text-center">Nenhuma categoria cadastrada ou com estoque ativo.</p>
                 {% endif %}
             </div>
 
             <!-- Full Item Listing and current stock -->
-            <div class="bg-white rounded-sm border border-slate-200 p-6 shadow-sm">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 shadow-sm rounded-2xl">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center">
-                        <svg class="h-4 w-4 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <h2 class="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest flex items-center">
+                        <svg class="h-5 w-5 mr-2 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                         </svg>
                         Posição de Estoque
                     </h2>
-                    <a href="{% url 'item_create' %}" class="text-[10px] font-bold text-brand-600 hover:text-brand-700 tracking-wider uppercase flex items-center transition-colors">
-                        Cadastrar Item
-                        <svg class="h-3.5 w-3.5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                    </a>
+                    {% url 'item_create' as item_create_url %}
+                    {% include "components/btn.html" with variant="ghost" label="Cadastrar Item" href=item_create_url size="sm" custom_classes="!p-0 text-brand-500 hover:text-brand-600" %}
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full text-left border-collapse text-xs">
                         <thead>
-                            <tr class="border-b border-slate-100">
-                                <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Item / SKU</th>
-                                <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipo</th>
-                                <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Estoque Mínimo</th>
-                                <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Estoque Atual</th>
-                                <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Status</th>
+                            <tr class="border-b border-slate-200/85 dark:border-slate-800 pb-2">
+                                <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Item / SKU</th>
+                                <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tipo</th>
+                                <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Estoque Mínimo</th>
+                                <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Estoque Atual</th>
+                                <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-50 text-xs">
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-850">
                             {% for item in items %}
-                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                                     <td class="py-3">
-                                        <a href="{% url 'item_detail' item.id %}" class="font-bold text-slate-800 hover:text-brand-600 transition-colors block">
+                                        <a href="{% url 'item_detail' item.id %}" class="font-semibold text-slate-900 dark:text-white hover:text-brand-500 transition-colors block">
                                             {{ item.name }}
                                         </a>
-                                        <span class="text-[10px] text-slate-400 block">SKU: {{ item.sku }}</span>
+                                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-mono block">SKU: {{ item.sku }}</span>
                                     </td>
-                                    <td class="py-3 text-slate-500">{{ item.get_item_type_display }}</td>
-                                    <td class="py-3 text-right font-outfit font-semibold text-slate-600">
+                                    <td class="py-3 text-slate-700 dark:text-slate-350">{{ item.get_item_type_display }}</td>
+                                    <td class="py-3 text-right font-outfit font-semibold text-slate-600 dark:text-slate-400">
                                         {{ item.minimum_stock|floatformat:1 }}
                                     </td>
-                                    <td class="py-3 text-right font-outfit font-extrabold text-slate-800">
+                                    <td class="py-3 text-right font-outfit font-bold text-slate-800 dark:text-slate-200">
                                         {{ item.current_stock|default:0.0|floatformat:1 }}
                                     </td>
                                     <td class="py-3 text-center">
                                         {% if item.current_stock|default:0.0 < item.minimum_stock %}
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-bold bg-rose-50 text-rose-700">
-                                                Alerta
-                                            </span>
+                                            {% include "components/badge.html" with variant="danger" label="Alerta" %}
                                         {% else %}
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-bold bg-emerald-50 text-emerald-700">
-                                                Ok
-                                            </span>
+                                            {% include "components/badge.html" with variant="success" label="Ok" %}
                                         {% endif %}
                                     </td>
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="5" class="py-6 text-center text-slate-400 text-xs">Nenhum item cadastrado no estoque.</td>
+                                    <td colspan="5" class="py-6 text-center text-slate-400 dark:text-slate-500">Nenhum item cadastrado no estoque.</td>
                                 </tr>
                             {% endfor %}
                         </tbody>

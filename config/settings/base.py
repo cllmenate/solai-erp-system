@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "shared.middleware.tenant.TenantMiddleware",
+    "shared.middleware.ratelimit.RateLimitMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -88,11 +89,18 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Password Hashing (SEC-002: Argon2 obrigatório)
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+]
+
 # User model and Authentication
 AUTH_USER_MODEL = "core.User"
 AUTHENTICATION_BACKENDS = [
     "apps.core.auth_backends.EmailOrUsernameBackend",
-    "apps.core.auth_backends.RolePermissionBackend",
+    "shared.permissions.backends.RolePermissionBackend",
 ]
 SILENCED_SYSTEM_CHECKS = ["auth.W004"]
 
@@ -149,6 +157,20 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@solaierp.com")
+
+# Cache Configuration (PERF-004: Redis como cache)
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": REDIS_URL,
+    }
+}
+
+# Security Headers (SEC-006)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+SECURE_BROWSER_XSS_FILTER = True
+
 
 
 

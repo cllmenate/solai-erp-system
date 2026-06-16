@@ -3,22 +3,25 @@
 {% block title %}Cadastro Concluído — SolAI ERP{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card" style="max-width: 600px; text-align: center;">
-        <div class="auth-logo">SolAI<span>.</span>ERP</div>
+<div class="flex-1 flex items-center justify-center p-4 sm:p-8 animate-fade-in">
+    <div class="w-full max-w-2xl bg-slate-900/60 border border-slate-800/80 rounded-3xl p-8 hover:border-brand-500/40 shadow-2xl shadow-slate-950/50 transition-all duration-300 text-center">
+        <!-- Logo -->
+        <div class="text-3xl font-black font-outfit text-white text-center mb-4 tracking-tighter uppercase">
+            SOL<span class="text-brand-500">AI</span><span class="text-xs font-light text-slate-500 ml-1">ERP</span>
+        </div>
         
-        <h2 style="font-family: var(--font-display); color: #4ade80; font-size: 1.8rem; margin-bottom: 1.5rem;">Empresa Cadastrada com Sucesso!</h2>
+        <h2 class="font-outfit text-emerald-400 text-2xl font-bold mb-4">Empresa Cadastrada com Sucesso!</h2>
         
-        <p style="color: #ccc; font-size: 1.05rem; margin-bottom: 2rem;">
+        <p class="text-slate-300 text-sm sm:text-base mb-6 leading-relaxed">
             O ambiente e o banco de dados da sua empresa foram provisionados. Como estamos em modo MVP e os serviços de SMTP não estão configurados, clique no link abaixo para criar sua senha de administrador e acessar o sistema.
         </p>
 
-        <div style="background: #0f1015; border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 2.5rem; text-align: left;">
-            <p style="font-size: 0.9rem; color: #888; text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 500;">Link de Configuração da Senha (copie ou clique):</p>
-            <a href="{{ activation_link }}" style="word-break: break-all; font-weight: bold; font-size: 1.05rem;">{{ activation_link }}</a>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-5 mb-8 text-left">
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2">Link de Configuração da Senha (copie ou clique):</p>
+            <a href="{{ activation_link }}" class="text-brand-500 hover:text-brand-600 font-bold text-sm word-break break-all transition-colors">{{ activation_link }}</a>
         </div>
 
-        <a href="{{ activation_link }}" class="btn-primary">Configurar Senha de Administrador &rarr;</a>
+        {% include "components/btn.html" with href=activation_link variant="primary" label="Configurar Senha de Administrador →" custom_classes="w-full py-3" %}
     </div>
 </div>
 {% endblock %}

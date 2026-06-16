@@ -1,26 +1,20 @@
 {% extends "commercial/base_dashboard.html" %}
 
 {% block title %}{{ item.name }} - Detalhes - SolAI ERP{% endblock %}
-
 {% block page_title %}Detalhes do Item{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="max-w-6xl mx-auto space-y-6 animate-fade-in">
     <!-- Action Header -->
-    <div class="flex items-center justify-between">
-        <a href="{% url 'item_list' %}" class="inline-flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
-            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Voltar para a Lista
-        </a>
+    <div class="flex items-center justify-between mb-4">
+        {% url 'item_list' as list_url %}
+        {% include "components/btn.html" with variant="secondary" label="Voltar" href=list_url icon="back" %}
+        
         <div class="flex items-center space-x-3">
-            <a href="{% url 'item_edit' item.id %}" class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 rounded-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors shadow-sm">
-                Editar
-            </a>
-            <a href="{% url 'item_delete' item.id %}" onclick="return confirm('Deseja realmente desativar este item?')" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-sm text-white bg-rose-600 hover:bg-rose-700 transition-colors shadow-sm">
-                Desativar
-            </a>
+            {% url 'item_edit' item.id as edit_url %}
+            {% include "components/btn.html" with variant="outline" label="Editar" href=edit_url icon="edit" %}
+            {% url 'item_delete' item.id as delete_url %}
+            {% include "components/btn.html" with variant="danger" label="Desativar" href=delete_url extra_attrs='onclick="return confirm(`Deseja realmente desativar este item?`)"' icon="disable" %}
         </div>
     </div>
 
@@ -28,94 +22,114 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Core Info -->
         <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white rounded-sm border border-slate-200 shadow-sm p-6 space-y-6">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-sm rounded-2xl p-6 md:p-8 space-y-6">
                 <div>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase {% if item.item_type == 'input' %}bg-blue-50 text-blue-800{% elif item.item_type == 'product' %}bg-emerald-50 text-emerald-800{% else %}bg-amber-50 text-amber-800{% endif %}">
-                        {{ item.get_item_type_display }}
-                    </span>
-                    <h3 class="text-2xl font-bold font-outfit text-slate-900 mt-2">{{ item.name }}</h3>
+                    {% if item.item_type == 'input' %}
+                        {% include "components/badge.html" with variant="info" label="Insumo" %}
+                    {% elif item.item_type == 'product' %}
+                        {% include "components/badge.html" with variant="success" label="Produto" %}
+                    {% elif item.item_type == 'asset' %}
+                        {% include "components/badge.html" with variant="warning" label="Ativo" %}
+                    {% else %}
+                        {% include "components/badge.html" with variant="default" label="Consumo" %}
+                    {% endif %}
+                    
+                    <h3 class="text-2xl font-bold font-outfit text-slate-900 dark:text-white mt-3">{{ item.name }}</h3>
                     {% if item.description %}
-                        <p class="text-sm text-slate-500 mt-2">{{ item.description }}</p>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">{{ item.description }}</p>
                     {% endif %}
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 pt-4 border-t border-slate-100">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 pt-6 border-t border-slate-200/80 dark:border-slate-800/80">
                     <div>
-                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block">SKU</span>
-                        <span class="font-mono text-sm font-semibold text-slate-800 mt-1 block">{{ item.sku }}</span>
+                        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">SKU</span>
+                        <span class="font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 mt-1 block">{{ item.sku }}</span>
                     </div>
                     <div>
-                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block">Código de Barras</span>
-                        <span class="font-mono text-sm font-semibold text-slate-800 mt-1 block">{{ item.barcode }}</span>
+                        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Código de Barras</span>
+                        <span class="font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 mt-1 block">{{ item.barcode }}</span>
                     </div>
                     <div>
-                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block">Código NCM</span>
-                        <span class="font-mono text-sm font-semibold text-slate-800 mt-1 block">{{ item.ncm|default:"-" }}</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 pt-4 border-t border-slate-100">
-                    <div>
-                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block">Modelo</span>
-                        <span class="text-sm text-slate-800 mt-1 block">{{ item.model.name }}</span>
-                    </div>
-                    <div>
-                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block">Marca</span>
-                        <span class="text-sm text-slate-800 mt-1 block">{{ item.model.brand.name }}</span>
-                    </div>
-                    <div>
-                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block">Número de Série</span>
-                        <span class="text-sm text-slate-800 mt-1 block">{{ item.serial_number|default:"-" }}</span>
+                        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Código NCM</span>
+                        <span class="font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 mt-1 block">{{ item.ncm|default:"—" }}</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-6 pt-4 border-t border-slate-100 bg-slate-50/50 -mx-6 -mb-6 p-6 rounded-b-sm">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 pt-6 border-t border-slate-200/80 dark:border-slate-800/80">
                     <div>
-                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block">Preço de Aquisição</span>
-                        <span class="text-lg font-bold text-slate-700 mt-1 block">R$ {{ item.acquisition_price }}</span>
+                        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Modelo</span>
+                        <span class="text-sm text-slate-850 dark:text-slate-200 mt-1 block font-medium">{{ item.model.name }}</span>
                     </div>
                     <div>
-                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block">Preço de Venda</span>
-                        <span class="text-xl font-bold text-brand-600 mt-1 block">R$ {{ item.sale_price }}</span>
+                        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Marca</span>
+                        <span class="text-sm text-slate-850 dark:text-slate-200 mt-1 block font-medium">{{ item.model.brand.name }}</span>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Número de Série</span>
+                        <span class="text-sm text-slate-850 dark:text-slate-200 mt-1 block font-medium">{{ item.serial_number|default:"—" }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 pt-6 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/20 -mx-6 md:-mx-8 -mb-6 md:-mb-8 p-6 md:p-8 rounded-b-2xl">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Preço de Aquisição</span>
+                        <span class="text-lg font-bold text-slate-700 dark:text-slate-300 mt-1 block">R$ {{ item.acquisition_price }}</span>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Preço de Venda</span>
+                        <span class="text-xl font-bold text-brand-500 mt-1 block">R$ {{ item.sale_price }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Batches -->
-            <div class="bg-white rounded-sm border border-slate-200 shadow-sm p-6">
-                <h4 class="text-lg font-bold font-outfit text-slate-900 border-b border-slate-100 pb-3">Lotes em Estoque (FIFO)</h4>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-sm rounded-2xl p-6">
+                <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
+                    <h4 class="text-lg font-bold font-outfit text-slate-900 dark:text-white">Lotes em Estoque (FIFO)</h4>
+                    {% url 'batch_create' as create_batch_url %}
+                    {% include "components/btn.html" with variant="outline" label="Novo Lote" href=create_batch_url size="sm" %}
+                </div>
                 <div class="overflow-x-auto mt-4">
                     <table class="w-full text-left text-sm">
                         <thead>
-                            <tr class="text-xs text-slate-500 font-bold uppercase tracking-wider bg-slate-50/70 border-b border-slate-200">
-                                <th class="py-2.5 px-4">Lote</th>
-                                <th class="py-2.5 px-4">Validade</th>
-                                <th class="py-2.5 px-4 text-right">Qtd. Inicial</th>
-                                <th class="py-2.5 px-4 text-right">Disponível</th>
-                                <th class="py-2.5 px-4 text-center">Status</th>
+                            <tr class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider bg-slate-50/50 dark:bg-slate-900/30 border-b border-slate-200/80 dark:border-slate-800">
+                                <th class="py-3 px-4">Lote</th>
+                                <th class="py-3 px-4">Validade</th>
+                                <th class="py-3 px-4 text-right">Qtd. Inicial</th>
+                                <th class="py-3 px-4 text-right">Disponível</th>
+                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4 text-right">Ações</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
                             {% for batch in batches %}
-                                <tr class="hover:bg-slate-50/50">
-                                    <td class="py-3 px-4 font-mono font-medium">{{ batch.batch_code }}</td>
-                                    <td class="py-3 px-4">{{ batch.expiry_date|date:"d/m/Y" }}</td>
-                                    <td class="py-3 px-4 text-right">{{ batch.total_quantity }}</td>
-                                    <td class="py-3 px-4 text-right font-semibold text-slate-900">{{ batch.stock_quantity }}</td>
-                                    <td class="py-3 px-4 text-center">
+                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                                    <td class="py-3.5 px-4 font-mono font-semibold text-slate-800 dark:text-slate-200">{{ batch.batch_code }}</td>
+                                    <td class="py-3.5 px-4 text-slate-700 dark:text-slate-300">{{ batch.expiry_date|date:"d/m/Y" }}</td>
+                                    <td class="py-3.5 px-4 text-right text-slate-600 dark:text-slate-400">{{ batch.total_quantity }}</td>
+                                    <td class="py-3.5 px-4 text-right font-semibold text-slate-900 dark:text-white">{{ batch.stock_quantity }}</td>
+                                    <td class="py-3.5 px-4 text-center">
                                         {% if batch.status == 'active' %}
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-100">Ativo</span>
+                                            {% include "components/badge.html" with variant="success" label="Ativo" %}
                                         {% elif batch.status == 'expired' %}
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-800 border border-rose-100">Expirado</span>
+                                            {% include "components/badge.html" with variant="danger" label="Expirado" %}
                                         {% else %}
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">Descartado</span>
+                                            {% include "components/badge.html" with variant="default" label="Desativado" %}
                                         {% endif %}
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right whitespace-nowrap space-x-1">
+                                        {% url 'batch_detail' batch.id as view_url %}
+                                        {% include "components/btn.html" with variant="ghost" icon="view" href=view_url custom_classes="!p-1.5 text-slate-500 hover:text-brand-500" title="Visualizar" %}
+                                        {% url 'batch_edit' batch.id as edit_url %}
+                                        {% include "components/btn.html" with variant="ghost" icon="edit" href=edit_url custom_classes="!p-1.5 text-slate-500 hover:text-brand-500" title="Editar" %}
+                                        {% url 'batch_delete' batch.id as del_url %}
+                                        {% include "components/btn.html" with variant="ghost" icon="disable" href=del_url custom_classes="!p-1.5 text-rose-500 hover:text-rose-600" extra_attrs='onclick="return confirm(`Deseja realmente desativar este lote?`)"' title="Desativar" %}
                                     </td>
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="5" class="py-6 text-center text-slate-500">Nenhum lote registrado para este item.</td>
-                                endfor %}
+                                    <td colspan="6" class="py-6 text-center text-slate-400 dark:text-slate-500">Nenhum lote registrado para este item.</td>
+                                </tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -125,131 +139,139 @@
 
         <!-- Technical and Nutritional Specs -->
         <div class="space-y-6">
-            <!-- Nutritional table ANVISA -->
             {% if nutritional_specs %}
-                <div class="bg-white rounded-sm border border-slate-200 shadow-sm p-6">
-                    <h4 class="text-lg font-bold font-outfit text-slate-900 border-b border-slate-100 pb-3">Tabela Nutricional (ANVISA)</h4>
-                    <div class="mt-4 border-2 border-slate-900 p-4 font-sans text-xs">
-                        <div class="text-center font-bold text-sm border-b-4 border-slate-900 pb-1 uppercase">Informação Nutricional</div>
-                        <div class="flex justify-between py-1.5 border-b border-slate-900 font-medium">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-sm rounded-2xl p-6">
+                    <h4 class="text-lg font-bold font-outfit text-slate-900 dark:text-white border-b border-slate-200/80 dark:border-slate-800/80 pb-3">Tabela Nutricional (ANVISA)</h4>
+                    <div class="mt-4 border-2 border-slate-900 dark:border-slate-700 p-4 font-sans text-xs bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100 rounded-xl">
+                        <div class="text-center font-bold text-sm border-b-4 border-slate-900 dark:border-slate-700 pb-1 uppercase">Informação Nutricional</div>
+                        <div class="flex justify-between py-1.5 border-b border-slate-900 dark:border-slate-700 font-medium">
                             <span>Porção:</span>
                             <span>{{ nutritional_specs.porção|default:"100g" }}</span>
                         </div>
-                        <div class="grid grid-cols-3 font-bold border-b-2 border-slate-900 py-1 text-[10px] text-right">
+                        <div class="grid grid-cols-3 font-bold border-b-2 border-slate-900 dark:border-slate-700 py-1 text-[10px] text-right">
                             <span class="col-span-2 text-left">Quantidade por porção</span>
                             <span>% VD (*)</span>
                         </div>
                         
-                        <div class="flex justify-between py-1 border-b border-slate-300">
+                        <div class="flex justify-between py-1.5 border-b border-slate-200 dark:border-slate-800">
                             <span>Valor Energético</span>
                             <span class="font-semibold">{{ nutritional_specs.valor_energetico|default:"0 kcal" }}</span>
                         </div>
-                        <div class="flex justify-between py-1 border-b border-slate-300">
+                        <div class="flex justify-between py-1.5 border-b border-slate-200 dark:border-slate-800">
                             <span>Carboidratos</span>
                             <span class="font-semibold">{{ nutritional_specs.carboidratos|default:"0g" }}</span>
                         </div>
-                        <div class="flex justify-between py-1 border-b border-slate-300">
+                        <div class="flex justify-between py-1.5 border-b border-slate-200 dark:border-slate-800">
                             <span>Proteínas</span>
                             <span class="font-semibold">{{ nutritional_specs.proteinas|default:"0g" }}</span>
                         </div>
-                        <div class="flex justify-between py-1 border-b border-slate-300">
+                        <div class="flex justify-between py-1.5 border-b border-slate-200 dark:border-slate-800">
                             <span>Gorduras Totais</span>
                             <span class="font-semibold">{{ nutritional_specs.gorduras_totais|default:"0g" }}</span>
                         </div>
-                        <div class="flex justify-between py-1 border-b border-slate-300">
+                        <div class="flex justify-between py-1.5 border-b border-slate-200 dark:border-slate-800">
                             <span>Gorduras Saturadas</span>
                             <span class="font-semibold">{{ nutritional_specs.gorduras_saturadas|default:"0g" }}</span>
                         </div>
-                        <div class="flex justify-between py-1 border-b border-slate-300">
+                        <div class="flex justify-between py-1.5 border-b border-slate-200 dark:border-slate-800">
                             <span>Gorduras Trans</span>
                             <span class="font-semibold">{{ nutritional_specs.gorduras_trans|default:"0g" }}</span>
                         </div>
-                        <div class="flex justify-between py-1 border-b border-slate-300">
+                        <div class="flex justify-between py-1.5 border-b border-slate-200 dark:border-slate-800">
                             <span>Fibras Alimentares</span>
                             <span class="font-semibold">{{ nutritional_specs.fibras|default:"0g" }}</span>
                         </div>
-                        <div class="flex justify-between py-1 border-b-2 border-slate-900">
+                        <div class="flex justify-between py-1.5 border-b-2 border-slate-900 dark:border-slate-700">
                             <span>Sódio</span>
                             <span class="font-semibold">{{ nutritional_specs.sodio|default:"0mg" }}</span>
                         </div>
-                        <p class="text-[9px] text-slate-500 mt-2">
+                        <p class="text-[9px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
                             * % Valores Diários de referência com base em uma dieta de 2.000 kcal ou 8.400 kJ.
                         </p>
                     </div>
                 </div>
             {% else %}
-                <div class="bg-white rounded-sm border border-slate-200 shadow-sm p-6 text-center text-slate-400">
-                    <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-6 text-center text-slate-400 dark:text-slate-500">
+                    <svg class="mx-auto h-12 w-12 text-slate-300 dark:text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <p class="text-xs mt-2">Nenhum template de Ficha Técnica / Tabela Nutricional associado a este item.</p>
+                    <p class="text-xs mt-3">Nenhum template de Ficha Técnica / Tabela Nutricional associado a este item.</p>
                 </div>
             {% endif %}
         </div>
     </div>
 
     <!-- Audit Trail Section -->
-    <div class="bg-white rounded-sm border border-slate-200 p-6 shadow-sm mt-8">
-        <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center">
-            <svg class="h-4 w-4 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm mt-8">
+        <h2 class="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center">
+            <svg class="h-5 w-5 mr-2 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Trilha de Auditoria (Histórico de Alterações)
+            Histórico de Alterações (Audit Log)
         </h2>
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                    <tr class="border-b border-slate-100">
-                        <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Data / Hora</th>
-                        <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Usuário</th>
-                        <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Operação</th>
-                        <th class="pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Modificações</th>
+                    <tr class="border-b border-slate-200/85 dark:border-slate-800 pb-2">
+                        <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data / Hora</th>
+                        <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Usuário</th>
+                        <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Operação</th>
+                        <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Modificações</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50 text-xs">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-850">
                     {% for log in audit_history %}
-                        <tr class="hover:bg-slate-50/50 transition-colors">
-                            <td class="py-3 text-slate-500">{{ log.date|date:"d/m/Y H:i:s" }}</td>
-                            <td class="py-3 font-semibold text-slate-800">{{ log.user.username|default:"Sistema" }}</td>
-                            <td class="py-3">
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">{{ log.date|date:"d/m/Y H:i:s" }}</td>
+                            <td class="py-3 font-semibold text-slate-800 dark:text-slate-200">{{ log.user.username|default:"Sistema" }}</td>
+                            <td class="py-3 whitespace-nowrap">
                                 {% if log.type == 'create' %}
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-bold bg-emerald-50 text-emerald-700">
-                                        Criação
-                                    </span>
+                                    {% include "components/badge.html" with variant="success" label="Criação" %}
                                 {% else %}
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-bold bg-amber-50 text-amber-700">
-                                        Atualização
-                                    </span>
+                                    {% include "components/badge.html" with variant="warning" label="Atualização" %}
                                 {% endif %}
                             </td>
                             <td class="py-3">
                                 {% if log.fields %}
-                                    <ul class="list-disc list-inside space-y-1 text-slate-600">
+                                    <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-400">
                                         {% for field in log.fields %}
                                             <li>
-                                                <strong class="text-slate-700">{{ field.field }}:</strong> 
-                                                <span class="text-rose-600 font-mono">{{ field.old|default:"(vazio)" }}</span> 
+                                                <strong class="text-slate-700 dark:text-slate-300 font-medium">{{ field.field }}:</strong> 
+                                                <span class="text-rose-500 font-mono">{{ field.old|default:"(vazio)" }}</span> 
                                                 &rarr; 
-                                                <span class="text-emerald-600 font-mono">{{ field.new|default:"(vazio)" }}</span>
+                                                <span class="text-emerald-500 font-mono">{{ field.new|default:"(vazio)" }}</span>
                                             </li>
                                         {% endfor %}
                                     </ul>
                                 {% else %}
                                     {% if log.type == 'create' %}
-                                        <span class="text-slate-400 italic">Registro inicial do item</span>
+                                        <span class="text-slate-400 dark:text-slate-500 italic">Registro inicial do item</span>
                                     {% else %}
-                                        <span class="text-slate-400 italic">Nenhum campo alterado</span>
+                                        <span class="text-slate-400 dark:text-slate-500 italic">Nenhum campo alterado</span>
                                     {% endif %}
                                 {% endif %}
                             </td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="4" class="py-6 text-center text-slate-400">Nenhum registro de auditoria disponível.</td>
+                            <td colspan="4" class="py-6 text-center text-slate-400 dark:text-slate-500">Nenhum registro de auditoria disponível.</td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="flex items-center justify-between mt-8 border-t border-slate-200/80 dark:border-slate-800/80 pt-6">
+        {% url 'item_list' as list_url %}
+        {% include "components/btn.html" with variant="secondary" label="Voltar" href=list_url icon="back" %}
+        
+        <div class="flex items-center space-x-3">
+            {% url 'item_edit' item.id as edit_url %}
+            {% include "components/btn.html" with variant="outline" label="Editar" href=edit_url icon="edit" %}
+            {% url 'item_delete' item.id as delete_url %}
+            {% include "components/btn.html" with variant="danger" label="Desativar" href=delete_url extra_attrs='onclick="return confirm(`Deseja realmente desativar este registro?`)"' icon="disable" %}
         </div>
     </div>
 </div>
