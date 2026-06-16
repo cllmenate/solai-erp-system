@@ -88,14 +88,14 @@ def provision_tenant(
             created_sectors[sec_name] = sec_obj
         
         # Create default Administrador role for the tenant linked to "Administração" sector
-        admin_role, _ = Role.objects.get_or_create(
+        admin_role, _ = Role.objects.get_or_create(  # type: ignore[misc]
             name=f"{tenant.subdomain}:Administrador",
             tenant=tenant,
             defaults={
-                "level": 100,
-                "description": "Administrador Geral do Tenant",
-                "is_active": True,
-                "sector": created_sectors["Administração"],
+                "level": 100,  # type: ignore[misc]
+                "description": "Administrador Geral do Tenant",  # type: ignore[misc]
+                "is_active": True,  # type: ignore[misc]
+                "sector": created_sectors["Administração"],  # type: ignore[misc]
             }
         )
         if not admin_role.sector:

@@ -54,6 +54,7 @@
             }
         }
     </script>
+    {% include "components/tokens.html" %}
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -61,31 +62,16 @@
         h1, h2, h3, h4, h5, h6 {
             font-family: 'Outfit', sans-serif;
         }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
         
         /* Collapsible sidebar logic transitions */
         .sidebar-transition {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all var(--ds-transition-normal);
         }
         
         /* Dropdown profile position animation */
         .dropdown-menu {
             transform-origin: bottom left;
-            transition: all 0.2s ease-out;
+            transition: all var(--ds-transition-fast);
         }
     </style>
     {% block extra_head %}{% endblock %}
@@ -322,37 +308,18 @@
             {% if messages %}
                 <div class="absolute top-4 right-8 z-50 space-y-2 w-96">
                     {% for message in messages %}
-                        <div class="p-4 rounded-sm border shadow-md flex items-start space-x-3 transition-all duration-300 animate-bounce {% if message.tags == 'success' %}bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-400{% elif message.tags == 'error' %}bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-400{% else %}bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-400{% endif %}">
-                            <div class="flex-1 text-sm font-medium">
-                                {{ message }}
-                            </div>
-                            <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600">&times;</button>
-                        </div>
+                        {% include "components/alert.html" with type=message.tags message=message %}
                     {% endfor %}
                 </div>
             {% endif %}
 
             <div class="max-w-7xl mx-auto space-y-6">
                 {% if current_user_role_deactivated %}
-                <div class="p-4 mb-4 rounded-sm border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-400 flex items-center space-x-3 shadow-sm animate-pulse">
-                    <svg class="h-5 w-5 text-rose-600 dark:text-rose-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <div class="text-sm font-medium">
-                        <strong>Atenção:</strong> Seu cargo atual foi desativado. Suas permissões específicas estão suspensas. Entre em contato com o administrador do sistema.
-                    </div>
-                </div>
+                    {% include "components/alert.html" with type="danger" message="Atenção: Seu cargo atual foi desativado. Suas permissões específicas estão suspensas. Entre em contato com o administrador do sistema." custom_classes="mb-4 shadow-sm" %}
                 {% endif %}
 
                 {% if admin_has_inactive_roles_warning %}
-                <div class="p-4 mb-4 rounded-sm border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-400 flex items-center space-x-3 shadow-sm">
-                    <svg class="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <div class="text-sm font-medium">
-                        <strong>Atenção Administrador:</strong> Existem usuários ativos associados a cargos desativados. Por favor, reatribua os cargos desses usuários o mais rápido possível para reestabelecer o acesso correto.
-                    </div>
-                </div>
+                    {% include "components/alert.html" with type="warning" message="Atenção Administrador: Existem usuários ativos associados a cargos desativados. Por favor, reatribua os cargos desses usuários o mais rápido possível para reestabelecer o acesso correto." custom_classes="mb-4 shadow-sm" %}
                 {% endif %}
 
                 {% block content %}

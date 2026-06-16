@@ -1,145 +1,226 @@
 {% extends 'commercial/base_dashboard.html' %}
 
-{% block title %}{{ partner.name }} | SolAI ERP{% endblock %}
+{% block title %}{{ partner.legal_name }} | SolAI ERP{% endblock %}
 {% block page_title %}Detalhes do Parceiro{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-2">
-    <a href="{% url 'partner_list' %}" class="inline-flex items-center text-sm text-slate-500 hover:text-slate-700 transition-colors">
-        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-        </svg>
-        Voltar para Lista
-    </a>
-    <div class="space-x-3">
-        <a href="{% url 'partner_edit' partner.id %}" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold py-2 px-4 rounded-sm transition-all duration-150 active:scale-95 shadow-sm hover:shadow">
-            Editar Parceiro
-        </a>
-    </div>
-</div>
-
-<!-- Main Info Card -->
-<div class="bg-white border border-slate-200 shadow-sm rounded-sm p-8 space-y-6">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-100 pb-6 gap-4">
-        <div>
-            <h3 class="text-2xl font-bold font-outfit text-slate-800">{{ partner.legal_name }}</h3>
-            <p class="text-sm text-slate-400 mt-1">
-                {% if partner.trade_name %}Nome Fantasia: <span class="font-medium text-slate-600">{{ partner.trade_name }}</span> | {% endif %}
-                Tipo de Pessoa: <span class="font-medium text-slate-600">{{ partner.get_person_type_display }}</span>
-            </p>
-        </div>
-        <div class="flex flex-wrap gap-2">
-            {% if partner.is_customer %}
-                <span class="px-3 py-1 rounded-sm text-xs font-semibold bg-emerald-50 border border-emerald-200 text-emerald-700">Cliente</span>
-            {% endif %}
-            {% if partner.is_supplier %}
-                <span class="px-3 py-1 rounded-sm text-xs font-semibold bg-blue-50 border border-blue-200 text-blue-700">Fornecedor</span>
-            {% endif %}
-            {% if partner.is_carrier %}
-                <span class="px-3 py-1 rounded-sm text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-700">Transportadora</span>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Demographics -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
-        <div>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Documento (CPF/CNPJ)</p>
-            <p class="text-slate-800 font-mono">{{ partner.formatted_document }}</p>
-        </div>
-        {% if partner.state_registration %}
-        <div>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Inscrição Estadual</p>
-            <p class="text-slate-800">{{ partner.state_registration }}</p>
-        </div>
-        {% endif %}
-        {% if partner.municipal_registration %}
-        <div>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Inscrição Municipal</p>
-            <p class="text-slate-800">{{ partner.municipal_registration }}</p>
-        </div>
-        {% endif %}
-        {% if partner.website %}
-        <div>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Website</p>
-            <a href="{{ partner.website }}" target="_blank" class="text-brand-600 hover:underline hover:text-brand-700 transition-colors">{{ partner.website }}</a>
-        </div>
-        {% endif %}
-        {% if partner.integration_code %}
-        <div>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Código de Integração</p>
-            <p class="text-slate-800 font-mono">{{ partner.integration_code }}</p>
-        </div>
-        {% endif %}
-        <div>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Data de Cadastro</p>
-            <p class="text-slate-800">{{ partner.created_at|date:"d/m/Y H:i" }}</p>
-        </div>
-    </div>
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <!-- Contacts list -->
-    <div class="bg-white border border-slate-200 shadow-sm rounded-sm p-6 space-y-4">
-        <h4 class="text-lg font-bold font-outfit text-slate-800 flex items-center border-b border-slate-100 pb-3">
-            <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-            </svg>
-            Contatos Associados
-        </h4>
+<div class="max-w-4xl mx-auto space-y-6 animate-fade-in">
+    <!-- Action controls -->
+    <div class="flex items-center justify-between mb-4">
+        {% url 'partner_list' as list_url %}
+        {% include "components/btn.html" with variant="secondary" label="Voltar" href=list_url icon="back" %}
         
-        <div class="space-y-4 divide-y divide-slate-100">
-            {% for contact in partner.contacts.all %}
-                <div class="pt-4 first:pt-0 flex justify-between items-start">
-                    <div class="space-y-1">
-                        <div class="flex items-center">
-                            <span class="font-semibold text-slate-800 text-sm mr-2">{{ contact.name }}</span>
-                            {% if contact.is_primary %}
-                                <span class="px-1.5 py-0.5 rounded-sm text-[9px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-700">Principal</span>
-                            {% endif %}
-                        </div>
-                        <p class="text-xs text-slate-500">Email: <span class="text-slate-700">{{ contact.email }}</span></p>
-                        <p class="text-xs text-slate-500">Telefone: <span class="text-slate-700">{{ contact.phone }}</span></p>
-                    </div>
-                    {% if contact.role %}
-                        <span class="text-xs bg-slate-100 text-slate-600 py-0.5 px-2 rounded-sm">{{ contact.role }}</span>
-                    {% endif %}
-                </div>
-            {% endfor %}
+        <div class="flex items-center space-x-3">
+            {% url 'partner_edit' partner.id as edit_url %}
+            {% include "components/btn.html" with variant="outline" label="Editar" href=edit_url icon="edit" %}
+            {% url 'partner_delete' partner.id as delete_url %}
+            {% include "components/btn.html" with variant="danger" label="Desativar" href=delete_url extra_attrs='onclick="return confirm(`Deseja realmente desativar este registro?`)"' icon="disable" %}
         </div>
     </div>
 
-    <!-- Addresses list -->
-    <div class="bg-white border border-slate-200 shadow-sm rounded-sm p-6 space-y-4">
-        <h4 class="text-lg font-bold font-outfit text-slate-800 flex items-center border-b border-slate-100 pb-3">
-            <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            Endereços Registrados
-        </h4>
-        
-        <div class="space-y-4 divide-y divide-slate-100">
-            {% for address in partner.addresses.all %}
-                <div class="pt-4 first:pt-0 space-y-2">
-                    <div class="flex justify-between items-start">
-                        <span class="font-semibold text-slate-800 text-sm">{{ address.label }}</span>
-                        <div class="flex space-x-1.5">
-                            {% if address.is_collection %}
-                                <span class="px-1.5 py-0.5 rounded-sm text-[9px] font-bold bg-blue-50 border border-blue-200 text-blue-700">Coleta</span>
-                            {% endif %}
-                            {% if address.is_delivery %}
-                                <span class="px-1.5 py-0.5 rounded-sm text-[9px] font-bold bg-amber-50 border border-amber-200 text-amber-700">Entrega</span>
-                            {% endif %}
+    <!-- Main Info Card -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-sm rounded-2xl p-6 md:p-8 space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-200/80 dark:border-slate-800/80 pb-6 gap-4">
+            <div>
+                <h3 class="text-2xl font-bold font-outfit text-slate-900 dark:text-white">{{ partner.legal_name }}</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    {% if partner.trade_name %}Nome Fantasia: <span class="font-medium text-slate-700 dark:text-slate-300">{{ partner.trade_name }}</span> | {% endif %}
+                    Tipo de Pessoa: <span class="font-medium text-slate-700 dark:text-slate-300">{{ partner.get_person_type_display }}</span>
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                {% if partner.is_customer %}
+                    {% include "components/badge.html" with variant="success" label="Cliente" %}
+                {% endif %}
+                {% if partner.is_supplier %}
+                    {% include "components/badge.html" with variant="info" label="Fornecedor" %}
+                {% endif %}
+                {% if partner.is_carrier %}
+                    {% include "components/badge.html" with variant="warning" label="Transportadora" %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Demographics Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
+            <div>
+                <p class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Documento (CPF/CNPJ)</p>
+                <p class="text-slate-800 dark:text-slate-200 font-mono font-medium">{{ partner.formatted_document }}</p>
+            </div>
+            {% if partner.state_registration %}
+            <div>
+                <p class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Inscrição Estadual</p>
+                <p class="text-slate-800 dark:text-slate-200 font-medium">{{ partner.state_registration }}</p>
+            </div>
+            {% endif %}
+            {% if partner.municipal_registration %}
+            <div>
+                <p class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Inscrição Municipal</p>
+                <p class="text-slate-800 dark:text-slate-200 font-medium">{{ partner.municipal_registration }}</p>
+            </div>
+            {% endif %}
+            {% if partner.website %}
+            <div>
+                <p class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Website</p>
+                <a href="{{ partner.website }}" target="_blank" class="text-brand-500 hover:underline transition-colors font-medium">{{ partner.website }}</a>
+            </div>
+            {% endif %}
+            {% if partner.integration_code %}
+            <div>
+                <p class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Código de Integração</p>
+                <p class="text-slate-800 dark:text-slate-200 font-mono font-medium">{{ partner.integration_code }}</p>
+            </div>
+            {% endif %}
+            <div>
+                <p class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Data de Cadastro</p>
+                <p class="text-slate-800 dark:text-slate-200 font-medium">{{ partner.created_at|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related info grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Contacts list -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-sm rounded-2xl p-6 space-y-4">
+            <h4 class="text-lg font-bold font-outfit text-slate-900 dark:text-white flex items-center border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
+                <svg class="w-5 h-5 mr-2 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                Contatos Associados
+            </h4>
+            
+            <div class="space-y-4 divide-y divide-slate-100 dark:divide-slate-850">
+                {% for contact in partner.contacts.all %}
+                    <div class="pt-4 first:pt-0 flex justify-between items-start">
+                        <div class="space-y-1">
+                            <div class="flex items-center">
+                                <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm mr-2">{{ contact.name }}</span>
+                                {% if contact.is_primary %}
+                                    {% include "components/badge.html" with variant="success" label="Principal" %}
+                                {% endif %}
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Email: <span class="text-slate-700 dark:text-slate-300 font-medium">{{ contact.email }}</span></p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Telefone: <span class="text-slate-700 dark:text-slate-300 font-medium">{{ contact.phone }}</span></p>
+                        </div>
+                        {% if contact.role %}
+                            {% include "components/badge.html" with label=contact.role %}
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <div class="py-4 text-center text-slate-400 dark:text-slate-500 text-xs">
+                        Nenhum contato cadastrado.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Addresses list -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-sm rounded-2xl p-6 space-y-4">
+            <h4 class="text-lg font-bold font-outfit text-slate-900 dark:text-white flex items-center border-b border-slate-200/80 dark:border-slate-800/80 pb-3">
+                <svg class="w-5 h-5 mr-2 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Endereços Registrados
+            </h4>
+            
+            <div class="space-y-4 divide-y divide-slate-100 dark:divide-slate-850">
+                {% for address in partner.addresses.all %}
+                    <div class="pt-4 first:pt-0 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm">{{ address.label }}</span>
+                            <div class="flex space-x-1.5">
+                                {% if address.is_collection %}
+                                    {% include "components/badge.html" with variant="info" label="Coleta" %}
+                                {% endif %}
+                                {% if address.is_delivery %}
+                                    {% include "components/badge.html" with variant="warning" label="Entrega" %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-xs text-slate-650 dark:text-slate-400 space-y-1">
+                            <p class="font-medium">{{ address.street }}, {{ address.number }}{% if address.complement %} - {{ address.complement }}{% endif %}</p>
+                            <p>{{ address.neighborhood }} - CEP: {{ address.zip_code }}</p>
+                            <p>{{ address.city }}/{{ address.state }} - {{ address.country }}</p>
                         </div>
                     </div>
-                    <div class="text-xs text-slate-600 space-y-0.5">
-                        <p>{{ address.street }}, {{ address.number }}{% if address.complement %} - {{ address.complement }}{% endif %}</p>
-                        <p>{{ address.neighborhood }} - CEP: {{ address.zip_code }}</p>
-                        <p>{{ address.city }}/{{ address.state }} - {{ address.country }}</p>
+                {% empty %}
+                    <div class="py-4 text-center text-slate-400 dark:text-slate-500 text-xs">
+                        Nenhum endereço cadastrado.
                     </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Trail Section -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm mt-8">
+        <h2 class="text-xs font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest mb-4 flex items-center">
+            <svg class="h-5 w-5 mr-2 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Histórico de Alterações (Audit Log)
+        </h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="border-b border-slate-200/85 dark:border-slate-800 pb-2">
+                        <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data / Hora</th>
+                        <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Usuário</th>
+                        <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Operação</th>
+                        <th class="pb-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Modificações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-850">
+                    {% for log in audit_history %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">{{ log.date|date:"d/m/Y H:i:s" }}</td>
+                            <td class="py-3 font-semibold text-slate-800 dark:text-slate-200">{{ log.user.username|default:"Sistema" }}</td>
+                            <td class="py-3 whitespace-nowrap">
+                                {% if log.type == 'create' %}
+                                    {% include "components/badge.html" with variant="success" label="Criação" %}
+                                {% else %}
+                                    {% include "components/badge.html" with variant="warning" label="Atualização" %}
+                                {% endif %}
+                            </td>
+                            <td class="py-3">
+                                {% if log.fields %}
+                                    <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-400">
+                                        {% for field in log.fields %}
+                                            <li>
+                                                <strong class="text-slate-700 dark:text-slate-300 font-medium">{{ field.field }}:</strong> 
+                                                <span class="text-rose-500 font-mono">{{ field.old|default:"(vazio)" }}</span> 
+                                                &rarr; 
+                                                <span class="text-emerald-500 font-mono">{{ field.new|default:"(vazio)" }}</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    {% if log.type == 'create' %}
+                                        <span class="text-slate-400 dark:text-slate-500 italic">Registro inicial</span>
+                                    {% else %}
+                                        <span class="text-slate-400 dark:text-slate-500 italic">Nenhum campo alterado</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="py-6 text-center text-slate-400 dark:text-slate-500">Nenhum registro de auditoria disponível.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="flex items-center justify-between mt-8 border-t border-slate-200/80 dark:border-slate-800/80 pt-6">
+        {% include "components/btn.html" with variant="secondary" label="Voltar" href=list_url icon="back" %}
+        
+        <div class="flex items-center space-x-3">
+            {% include "components/btn.html" with variant="outline" label="Editar" href=edit_url icon="edit" %}
+            {% include "components/btn.html" with variant="danger" label="Desativar" href=delete_url extra_attrs='onclick="return confirm(`Deseja realmente desativar este registro?`)"' icon="disable" %}
         </div>
     </div>
 </div>

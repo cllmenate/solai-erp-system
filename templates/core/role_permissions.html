@@ -5,34 +5,29 @@
 {% block page_title %}Permissões do Cargo: {{ role.friendly_name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-5 border-b border-slate-200 dark:border-slate-800 gap-4">
+<div class="max-w-6xl mx-auto space-y-6 animate-fade-in">
+    <!-- Action Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 font-outfit">Gerenciar Permissões</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Atribua privilégios específicos para o cargo <span class="font-semibold text-brand-600 dark:text-brand-400">{{ role.friendly_name }}</span> (Nível {{ role.level }}).</p>
+            {% url 'settings_roles' as back_url %}
+            {% include "components/btn.html" with variant="secondary" label="Voltar" href=back_url icon="back" %}
         </div>
-        <div class="flex items-center space-x-2">
-            <button type="button" onclick="toggleAllCheckboxes(true)" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-250 dark:hover:bg-slate-700 rounded-sm transition-all focus:outline-none">
-                Selecionar Tudo
-            </button>
-            <button type="button" onclick="toggleAllCheckboxes(false)" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-250 dark:hover:bg-slate-700 rounded-sm transition-all focus:outline-none">
-                Limpar Tudo
-            </button>
-            <a href="{% url 'settings_roles' %}" class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-350 dark:border-slate-750 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-sm shadow-sm transition-all focus:outline-none">
-                Cancelar
-            </a>
+        <div class="flex items-center gap-3">
+            {% include "components/btn.html" with type="button" variant="secondary" label="Selecionar Tudo" extra_attrs='onclick="toggleAllCheckboxes(true)"' %}
+            {% include "components/btn.html" with type="button" variant="outline" label="Limpar Tudo" extra_attrs='onclick="toggleAllCheckboxes(false)"' %}
+            {% include "components/btn.html" with variant="ghost" label="Cancelar" href=back_url icon="cancel" %}
+            {% include "components/btn.html" with type="submit" label="Salvar" variant="primary" icon="save" extra_attrs='form="main-form"' %}
         </div>
     </div>
 
     <!-- Main Grid Form -->
-    <form method="POST" class="space-y-8">
+    <form method="POST" id="main-form" class="space-y-8">
         {% csrf_token %}
 
         {% for module in grid_data %}
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-sm overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
             <!-- Module Section Header -->
-            <div class="bg-slate-50 dark:bg-slate-950/80 px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+            <div class="bg-slate-50 dark:bg-slate-950/80 px-6 py-4 border-b border-slate-200/80 dark:border-slate-800/80 flex justify-between items-center">
                 <h2 class="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider font-outfit">
                     {{ module.app_label_display }}
                 </h2>
@@ -49,21 +44,21 @@
 
             <!-- Permissions Table -->
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+                <table class="min-w-full divide-y divide-slate-100 dark:divide-slate-850">
                     <thead class="bg-slate-50/50 dark:bg-slate-900/50 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left font-semibold w-1/3">Recurso / Módulo</th>
-                            <th scope="col" class="px-6 py-3 text-center font-semibold">Visualizar (view)</th>
-                            <th scope="col" class="px-6 py-3 text-center font-semibold">Adicionar (add)</th>
-                            <th scope="col" class="px-6 py-3 text-center font-semibold">Editar (change)</th>
-                            <th scope="col" class="px-6 py-3 text-center font-semibold">Excluir (delete)</th>
-                            <th scope="col" class="px-6 py-3 text-right font-semibold pr-8">Ações</th>
+                        <tr class="border-b border-slate-200/60 dark:border-slate-800">
+                            <th scope="col" class="px-6 py-4 text-left font-bold w-1/3">Recurso / Módulo</th>
+                            <th scope="col" class="px-6 py-4 text-center font-bold">Visualizar (view)</th>
+                            <th scope="col" class="px-6 py-4 text-center font-bold">Adicionar (add)</th>
+                            <th scope="col" class="px-6 py-4 text-center font-bold">Editar (change)</th>
+                            <th scope="col" class="px-6 py-4 text-center font-bold">Excluir (delete)</th>
+                            <th scope="col" class="px-6 py-4 text-right font-bold pr-8">Ações</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900 text-sm">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-900 text-sm">
                         {% for row in module.rows %}
                         <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/20 transition-colors py-3" data-row-module="{{ module.app_label }}" data-row-model="{{ row.model_name }}">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-slate-800 dark:text-slate-200">
+                            <td class="px-6 py-4 whitespace-nowrap font-semibold text-slate-800 dark:text-slate-200">
                                 {{ row.model_label }}
                                 <span class="block text-[10px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">{{ module.app_label }}.{{ row.model_name }}</span>
                             </td>
@@ -73,11 +68,11 @@
                                 {% if row.permissions.view %}
                                 <label class="inline-flex items-center justify-center p-2 cursor-pointer group">
                                     <input type="checkbox" name="permissions" value="{{ row.permissions.view.id }}" 
-                                           class="perm-checkbox {{ module.app_label }}-checkbox {{ module.app_label }}-{{ row.model_name }}-checkbox h-5 w-5 text-brand-600 focus:ring-brand-500 border-slate-350 dark:border-slate-700 rounded-sm dark:bg-slate-950 transition-all cursor-pointer scale-105"
+                                           class="perm-checkbox {{ module.app_label }}-checkbox {{ module.app_label }}-{{ row.model_name }}-checkbox h-5 w-5 text-brand-600 focus:ring-brand-500/20 border-slate-200 dark:border-slate-700 rounded-md dark:bg-slate-950 transition-all cursor-pointer scale-105 focus:ring-2"
                                            {% if row.permissions.view.granted %}checked{% endif %}>
                                 </label>
                                 {% else %}
-                                <span class="text-xs text-slate-350 dark:text-slate-700 font-light">—</span>
+                                <span class="text-xs text-slate-300 dark:text-slate-700 font-light">—</span>
                                 {% endif %}
                             </td>
 
@@ -86,11 +81,11 @@
                                 {% if row.permissions.add %}
                                 <label class="inline-flex items-center justify-center p-2 cursor-pointer group">
                                     <input type="checkbox" name="permissions" value="{{ row.permissions.add.id }}" 
-                                           class="perm-checkbox {{ module.app_label }}-checkbox {{ module.app_label }}-{{ row.model_name }}-checkbox h-5 w-5 text-brand-600 focus:ring-brand-500 border-slate-350 dark:border-slate-700 rounded-sm dark:bg-slate-950 transition-all cursor-pointer scale-105"
+                                           class="perm-checkbox {{ module.app_label }}-checkbox {{ module.app_label }}-{{ row.model_name }}-checkbox h-5 w-5 text-brand-600 focus:ring-brand-500/20 border-slate-200 dark:border-slate-700 rounded-md dark:bg-slate-950 transition-all cursor-pointer scale-105 focus:ring-2"
                                            {% if row.permissions.add.granted %}checked{% endif %}>
                                 </label>
                                 {% else %}
-                                <span class="text-xs text-slate-350 dark:text-slate-700 font-light">—</span>
+                                <span class="text-xs text-slate-300 dark:text-slate-700 font-light">—</span>
                                 {% endif %}
                             </td>
 
@@ -99,11 +94,11 @@
                                 {% if row.permissions.change %}
                                 <label class="inline-flex items-center justify-center p-2 cursor-pointer group">
                                     <input type="checkbox" name="permissions" value="{{ row.permissions.change.id }}" 
-                                           class="perm-checkbox {{ module.app_label }}-checkbox {{ module.app_label }}-{{ row.model_name }}-checkbox h-5 w-5 text-brand-600 focus:ring-brand-500 border-slate-350 dark:border-slate-700 rounded-sm dark:bg-slate-950 transition-all cursor-pointer scale-105"
+                                           class="perm-checkbox {{ module.app_label }}-checkbox {{ module.app_label }}-{{ row.model_name }}-checkbox h-5 w-5 text-brand-600 focus:ring-brand-500/20 border-slate-200 dark:border-slate-700 rounded-md dark:bg-slate-950 transition-all cursor-pointer scale-105 focus:ring-2"
                                            {% if row.permissions.change.granted %}checked{% endif %}>
                                 </label>
                                 {% else %}
-                                <span class="text-xs text-slate-350 dark:text-slate-700 font-light">—</span>
+                                <span class="text-xs text-slate-300 dark:text-slate-700 font-light">—</span>
                                 {% endif %}
                             </td>
 
@@ -112,11 +107,11 @@
                                 {% if row.permissions.delete %}
                                 <label class="inline-flex items-center justify-center p-2 cursor-pointer group">
                                     <input type="checkbox" name="permissions" value="{{ row.permissions.delete.id }}" 
-                                           class="perm-checkbox {{ module.app_label }}-checkbox {{ module.app_label }}-{{ row.model_name }}-checkbox h-5 w-5 text-brand-600 focus:ring-brand-500 border-slate-350 dark:border-slate-700 rounded-sm dark:bg-slate-950 transition-all cursor-pointer scale-105"
+                                           class="perm-checkbox {{ module.app_label }}-checkbox {{ module.app_label }}-{{ row.model_name }}-checkbox h-5 w-5 text-brand-600 focus:ring-brand-500/20 border-slate-200 dark:border-slate-700 rounded-md dark:bg-slate-950 transition-all cursor-pointer scale-105 focus:ring-2"
                                            {% if row.permissions.delete.granted %}checked{% endif %}>
                                 </label>
                                 {% else %}
-                                <span class="text-xs text-slate-350 dark:text-slate-700 font-light">—</span>
+                                <span class="text-xs text-slate-300 dark:text-slate-700 font-light">—</span>
                                 {% endif %}
                             </td>
 
@@ -138,18 +133,14 @@
         {% endfor %}
 
         <!-- Form Submission Footer -->
-        <div class="flex justify-end items-center pt-6 border-t border-slate-200 dark:border-slate-800 gap-4">
-            <a href="{% url 'settings_roles' %}" class="px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-350 dark:border-slate-750 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-sm shadow-sm transition-all focus:outline-none">
-                Voltar aos Cargos
-            </a>
-            <button type="submit" class="px-6 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-sm shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
-                Salvar Alterações
-            </button>
+        <div class="pt-4 border-t border-slate-200/80 dark:border-slate-800/80 flex justify-end space-x-3">
+            {% include "components/btn.html" with variant="outline" label="Cancelar" href=back_url icon="cancel" %}
+            {% include "components/btn.html" with type="submit" label="Salvar" variant="primary" icon="save" %}
         </div>
     </form>
 </div>
 
-<!-- Interactive UI Checkbox Manipulation Behaviors -->
+<!-- Interactive Checkbox Manipulation -->
 <script>
     function toggleAllCheckboxes(checked) {
         const checkboxes = document.querySelectorAll('.perm-checkbox');

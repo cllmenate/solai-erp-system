@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 from apps.core.models import Role, Sector, Tenant, User, UserPreferences
 
@@ -28,12 +27,19 @@ class RoleAdmin(admin.ModelAdmin):
     ordering = ("tenant", "-level", "name")
 
 
+class UserPreferencesInline(admin.StackedInline):
+    model = UserPreferences
+    can_delete = False
+    verbose_name_plural = "preferências"
+
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ("username", "email", "full_name", "tenant", "role", "is_active", "is_staff")
     list_filter = ("tenant", "is_active", "is_staff", "created_at")
     search_fields = ("username", "email", "full_name", "tenant__company_name")
     ordering = ("tenant", "username")
+    inlines = [UserPreferencesInline]
 
 
 @admin.register(UserPreferences)

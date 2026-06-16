@@ -5,31 +5,31 @@
 {% block page_title %}Configurações de Perfil{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
+<div class="max-w-4xl mx-auto animate-fade-in">
     <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 font-outfit">Minha Conta</h1>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white font-outfit">Minha Conta</h1>
         <p class="text-sm text-slate-500 dark:text-slate-400">Gerencie suas informações pessoais, segurança e preferências visuais.</p>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 rounded-sm border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row min-h-[500px]">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm flex flex-col md:flex-row min-h-[500px] overflow-hidden">
         <!-- Sidebar Navigation Tabs -->
-        <div class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 p-4 space-y-1">
-            <button onclick="switchTab('profile')" id="tab-btn-profile" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-sm transition-all duration-150 text-left bg-slate-100 dark:bg-slate-800 text-brand-700 dark:text-brand-400">
+        <div class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200/80 dark:border-slate-800/80 p-4 space-y-1 bg-slate-50/30 dark:bg-slate-950/20">
+            <button onclick="switchTab('profile')" id="tab-btn-profile" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 text-left bg-brand-500/10 text-brand-600 dark:text-brand-400">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 <span>Dados Pessoais</span>
             </button>
             
-            <button onclick="switchTab('password')" id="tab-btn-password" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-sm transition-all duration-150 text-left text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-800 dark:hover:text-slate-200">
+            <button onclick="switchTab('password')" id="tab-btn-password" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 text-left text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
                 <span>Segurança & Senha</span>
             </button>
 
-            <button onclick="switchTab('appearance')" id="tab-btn-appearance" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-sm transition-all duration-150 text-left text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-800 dark:hover:text-slate-200">
+            <button onclick="switchTab('appearance')" id="tab-btn-appearance" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 text-left text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                 </svg>
@@ -38,81 +38,58 @@
         </div>
 
         <!-- Tab Contents Area -->
-        <div class="flex-1 p-6 md:p-8 bg-slate-50/50 dark:bg-slate-950/20">
+        <div class="flex-1 p-6 md:p-8 relative">
             
             <!-- Tab: Personal Profile Info -->
-            <div id="tab-content-profile" class="tab-content space-y-6">
+            <div id="tab-content-profile" class="tab-content space-y-6 transition-all duration-300 ease-in-out opacity-100 relative pointer-events-auto">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 font-outfit">Dados Pessoais</h3>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white font-outfit">Dados Pessoais</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Atualize suas informações cadastrais básicas.</p>
                 </div>
                 
-                <form method="POST" action="?tab=profile" class="space-y-4 max-w-lg">
+                <form method="POST" action="?tab=profile" class="space-y-5 max-w-lg">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="profile">
 
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Nome de Usuário</label>
-                        <input type="text" value="{{ request.user.username }}" disabled class="w-full px-3 py-2 border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-500 rounded-sm text-sm focus:outline-none cursor-not-allowed">
-                        <span class="text-[10px] text-slate-400">O nome de usuário não pode ser alterado diretamente.</span>
-                    </div>
+                    {% include "components/input.html" with type="text" name="username_dummy" id="username_dummy" value=request.user.username label="Nome de Usuário" disabled=True help_text="O nome de usuário não pode ser alterado diretamente." %}
 
-                    <div>
-                        <label for="full_name" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Nome Completo</label>
-                        <input type="text" id="full_name" name="full_name" value="{{ request.user.full_name }}" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-sm text-sm focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none">
-                    </div>
+                    {% include "components/input.html" with type="text" name="full_name" id="full_name" value=request.user.full_name label="Nome Completo" required=True %}
 
-                    <div>
-                        <label for="email" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">E-mail</label>
-                        <input type="email" id="email" name="email" value="{{ request.user.email }}" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-sm text-sm focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none">
-                    </div>
+                    {% include "components/input.html" with type="email" name="email" id="email" value=request.user.email label="E-mail" required=True %}
 
-                    <div class="pt-4">
-                        <button type="submit" class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-sm shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
-                            Salvar Alterações
-                        </button>
+                    <div class="pt-2">
+                        {% include "components/btn.html" with type="submit" variant="primary" label="Salvar Alterações" %}
                     </div>
                 </form>
             </div>
 
             <!-- Tab: Password Settings -->
-            <div id="tab-content-password" class="tab-content space-y-6 hidden">
+            <div id="tab-content-password" class="tab-content space-y-6 transition-all duration-300 ease-in-out opacity-0 pointer-events-none absolute">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 font-outfit">Segurança & Senha</h3>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white font-outfit">Segurança & Senha</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Garanta a segurança de sua conta alterando sua senha periodicamente.</p>
                 </div>
                 
-                <form method="POST" action="?tab=password" class="space-y-4 max-w-lg">
+                <form method="POST" action="?tab=password" class="space-y-5 max-w-lg">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="password">
 
-                    <div>
-                        <label for="current_password" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Senha Atual</label>
-                        <input type="password" id="current_password" name="current_password" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-sm text-sm focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none">
-                    </div>
+                    {% include "components/input.html" with type="password" name="current_password" id="current_password" label="Senha Atual" required=True %}
 
-                    <div>
-                        <label for="new_password" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Nova Senha</label>
-                        <input type="password" id="new_password" name="new_password" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-sm text-sm focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none">
-                    </div>
+                    {% include "components/input.html" with type="password" name="new_password" id="new_password" label="Nova Senha" required=True %}
 
-                    <div>
-                        <label for="confirm_password" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Confirmar Nova Senha</label>
-                        <input type="password" id="confirm_password" name="confirm_password" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-sm text-sm focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none">
-                    </div>
+                    {% include "components/input.html" with type="password" name="confirm_password" id="confirm_password" label="Confirmar Nova Senha" required=True %}
 
-                    <div class="pt-4">
-                        <button type="submit" class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-sm shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
-                            Alterar Senha
-                        </button>
+                    <div class="pt-2">
+                        {% include "components/btn.html" with type="submit" variant="primary" label="Alterar Senha" %}
                     </div>
                 </form>
             </div>
 
             <!-- Tab: Appearance & Usability preferences -->
-            <div id="tab-content-appearance" class="tab-content space-y-6 hidden">
+            <div id="tab-content-appearance" class="tab-content space-y-6 transition-all duration-300 ease-in-out opacity-0 pointer-events-none absolute">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 font-outfit">Aparência & Usabilidade</h3>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white font-outfit">Aparência & Usabilidade</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Personalize o visual e os padrões de navegação do sistema.</p>
                 </div>
                 
@@ -122,9 +99,9 @@
 
                     <div class="space-y-4">
                         <!-- Dark Mode Toggle -->
-                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-sm shadow-xs">
-                            <div class="flex flex-col">
-                                <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">Tema Escuro (Dark Mode)</span>
+                        <div class="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl">
+                            <div class="flex flex-col mr-4">
+                                <span class="text-sm font-semibold text-slate-900 dark:text-white">Tema Escuro (Dark Mode)</span>
                                 <span class="text-xs text-slate-500 dark:text-slate-400">Muda a paleta de cores da dashboard para cores escuras.</span>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
@@ -134,9 +111,9 @@
                         </div>
 
                         <!-- Sidebar Compact Toggle -->
-                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-sm shadow-xs">
-                            <div class="flex flex-col">
-                                <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">Menu Lateral Compacto</span>
+                        <div class="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl">
+                            <div class="flex flex-col mr-4">
+                                <span class="text-sm font-semibold text-slate-900 dark:text-white">Menu Lateral Compacto</span>
                                 <span class="text-xs text-slate-500 dark:text-slate-400">Inicia a barra lateral encolhida por padrão para liberar mais espaço em tela.</span>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
@@ -146,13 +123,13 @@
                         </div>
 
                         <!-- Visual Theme Selection -->
-                        <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-sm shadow-xs space-y-3">
+                        <div class="p-4 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl space-y-3">
                             <div class="flex flex-col">
-                                <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">Esquema de Cores Visual</span>
+                                <span class="text-sm font-semibold text-slate-900 dark:text-white">Esquema de Cores Visual</span>
                                 <span class="text-xs text-slate-500 dark:text-slate-400">Escolha o tema para acentos e destaque de botões.</span>
                             </div>
                             
-                            <select name="visual_theme" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-sm text-sm focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none">
+                            <select name="visual_theme" class="w-full px-4 py-3 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
                                 <option value="default" {% if preferences.visual_theme == 'default' %}selected{% endif %}>Padrão Sol (Verde Esmeralda)</option>
                                 <option value="ocean" {% if preferences.visual_theme == 'ocean' %}selected{% endif %}>Oceano (Azul Profundo)</option>
                                 <option value="amber" {% if preferences.visual_theme == 'amber' %}selected{% endif %}>Âmbar (Laranja Quente)</option>
@@ -161,9 +138,7 @@
                     </div>
 
                     <div class="pt-2">
-                        <button type="submit" class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-sm shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
-                            Salvar Preferências
-                        </button>
+                        {% include "components/btn.html" with type="submit" variant="primary" label="Salvar Preferências" %}
                     </div>
                 </form>
             </div>
@@ -173,26 +148,28 @@
 </div>
 
 <script>
-    // Tab switching client-side behaviour
+    // Tab switching client-side behaviour with modern visual state toggles
     function switchTab(tabId) {
-        // Hide all contents
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        
-        // Show active content
-        const activeContent = document.getElementById(`tab-content-${tabId}`);
-        if (activeContent) {
-            activeContent.classList.remove('hidden');
-        }
+        // Handle tab contents with transition classes
+        document.querySelectorAll('.tab-content').forEach(el => {
+            if (el.id === `tab-content-${tabId}`) {
+                el.classList.remove('opacity-0', 'pointer-events-none', 'absolute');
+                el.classList.add('opacity-100', 'relative', 'pointer-events-auto');
+            } else {
+                el.classList.remove('opacity-100', 'relative', 'pointer-events-auto');
+                el.classList.add('opacity-0', 'pointer-events-none', 'absolute');
+            }
+        });
         
         // Reset all button styles
         document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.className = "tab-btn w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-sm transition-all duration-150 text-left text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-800 dark:hover:text-slate-200";
+            btn.className = "tab-btn w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 text-left text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200";
         });
         
         // Apply active styling to the button
         const activeBtn = document.getElementById(`tab-btn-${tabId}`);
         if (activeBtn) {
-            activeBtn.className = "tab-btn w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-sm transition-all duration-150 text-left bg-slate-100 dark:bg-slate-800 text-brand-700 dark:text-brand-400";
+            activeBtn.className = "tab-btn w-full flex items-center space-x-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 text-left bg-brand-500/10 text-brand-600 dark:text-brand-400";
         }
 
         // Update URL query parameter without reloading page

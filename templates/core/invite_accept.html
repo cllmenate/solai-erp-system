@@ -3,49 +3,40 @@
 {% block title %}Aceitar Convite — SolAI ERP{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-logo">SolAI<span>.</span>ERP</div>
-        <h2 style="text-align: center; margin-bottom: 2rem; font-family: var(--font-display); font-size: 1.4rem;">Aceitar Convite</h2>
+<div class="flex-1 flex items-center justify-center p-4 sm:p-8 animate-fade-in">
+    <div class="w-full max-w-md bg-slate-900/60 border border-slate-800/80 rounded-3xl p-8 hover:border-brand-500/40 shadow-2xl shadow-slate-950/50 transition-all duration-300">
+        <!-- Logo -->
+        <div class="text-3xl font-black font-outfit text-white text-center mb-4 tracking-tighter uppercase">
+            SOL<span class="text-brand-500">AI</span><span class="text-xs font-light text-slate-500 ml-1">ERP</span>
+        </div>
+        <h2 class="text-center text-slate-300 font-outfit text-lg mb-4">Aceitar Convite</h2>
         
-        <p style="color: #888; font-size: 0.95rem; margin-bottom: 1.5rem; text-align: center;">
-            Você foi convidado para se juntar ao tenant <strong>{{ subdomain }}</strong> com o e-mail <strong>{{ email }}</strong>. Finalize seu cadastro preenchendo os dados abaixo.
+        <p class="text-slate-400 text-sm mb-6 text-center leading-relaxed">
+            Você foi convidado para se juntar ao tenant <strong class="text-white">{{ subdomain }}</strong> com o e-mail <strong class="text-white">{{ email }}</strong>. Finalize seu cadastro preenchendo os dados abaixo.
         </p>
 
         {% if messages %}
-        <div class="alert-messages">
+        <div class="space-y-2 mb-6">
             {% for message in messages %}
-            <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
-                {{ message }}
-            </div>
+                {% include "components/alert.html" with type=message.tags message=message %}
             {% endfor %}
         </div>
         {% endif %}
 
-        <form method="post">
+        <form method="post" class="space-y-5">
             {% csrf_token %}
             
-            <div class="form-group">
-                <label for="username">Nome de Usuário</label>
-                <input type="text" name="username" id="username" class="form-control" placeholder="Seu nome de usuário único" required autocomplete="username">
-            </div>
+            {% include "components/input.html" with type="text" name="username" id="username" label="Nome de Usuário" placeholder="Seu nome de usuário único" required=True extra_attrs='autocomplete="username"' %}
 
-            <div class="form-group">
-                <label for="full_name">Nome Completo</label>
-                <input type="text" name="full_name" id="full_name" class="form-control" placeholder="Seu nome completo" required>
-            </div>
+            {% include "components/input.html" with type="text" name="full_name" id="full_name" label="Nome Completo" placeholder="Seu nome completo" required=True %}
 
-            <div class="form-group">
-                <label for="password">Senha</label>
-                <input type="password" name="password" id="password" class="form-control" placeholder="Mínimo 8 caracteres" required autocomplete="new-password">
-            </div>
+            {% include "components/input.html" with type="password" name="password" id="password" label="Senha" placeholder="Mínimo 8 caracteres" required=True extra_attrs='autocomplete="new-password"' %}
 
-            <div class="form-group">
-                <label for="password_confirm">Confirme a Senha</label>
-                <input type="password" name="password_confirm" id="password_confirm" class="form-control" placeholder="Confirme sua nova senha" required autocomplete="new-password">
-            </div>
+            {% include "components/input.html" with type="password" name="password_confirm" id="password_confirm" label="Confirme a Senha" placeholder="Confirme sua nova senha" required=True extra_attrs='autocomplete="new-password"' %}
 
-            <button type="submit" class="btn-primary" style="margin-top: 1rem;">Concluir Cadastro e Entrar</button>
+            <div class="pt-2">
+                {% include "components/btn.html" with type="submit" variant="primary" label="Concluir Cadastro e Entrar" custom_classes="w-full py-3" %}
+            </div>
         </form>
     </div>
 </div>

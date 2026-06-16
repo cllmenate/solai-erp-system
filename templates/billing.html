@@ -7,189 +7,90 @@
     <meta property="og:title" content="Assinatura Requerida — SolAI ERP">
     <meta property="og:description" content="Ative sua assinatura SolAI ERP para continuar utilizando o sistema.">
     <title>Assinatura Requerida — SolAI ERP</title>
+    <!-- Google Fonts: Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #0b0c10;
-            --text: #f5f5f7;
-            --accent: #ff4a00; /* Signal Orange */
-            --border: #ff4a00;
-            --card-bg: #16181d;
-            --font-display: 'Space Grotesk', sans-serif;
-            --font-body: 'Outfit', sans-serif;
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff5f0',
+                            100: '#ffe6d5',
+                            500: '#ff4a00',
+                            600: '#e04100',
+                            700: '#b83200',
+                            900: '#7c1c00',
+                        }
+                    }
+                }
+            }
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: var(--font-body);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 2rem;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 600px;
-            width: 100%;
-            background-color: var(--card-bg);
-            border: 3px solid var(--border);
-            padding: 4rem 3rem;
-            box-shadow: 10px 10px 0px #fff;
-            position: relative;
-        }
-
-        .alert-badge {
-            position: absolute;
-            top: -15px;
-            left: 30px;
-            background-color: var(--accent);
-            color: #000;
-            font-family: var(--font-display);
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 0.25rem 1rem;
-            font-size: 0.85rem;
-        }
-
-        h1 {
-            font-family: var(--font-display);
-            font-size: 2.5rem;
-            text-transform: uppercase;
-            letter-spacing: -0.03em;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-        }
-
-        p {
-            color: #8a8d98;
-            font-size: 1.1rem;
-            margin-bottom: 2.5rem;
-        }
-
-        .plan-options {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-        }
-
-        .plan-row {
-            border: 1px solid #2c2f33;
-            padding: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: border-color 0.2s ease;
-        }
-
-        .plan-row:hover {
-            border-color: var(--accent);
-        }
-
-        .plan-details {
-            font-family: var(--font-display);
-        }
-
-        .plan-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .plan-cost {
-            font-size: 0.95rem;
-            color: #8a8d98;
-        }
-
-        .pay-btn {
-            background-color: var(--accent);
-            color: #000;
-            font-family: var(--font-display);
-            font-weight: 700;
-            text-transform: uppercase;
-            text-decoration: none;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .pay-btn:hover {
-            transform: translate(-2px, -2px);
-        }
-
-        .back-link {
-            display: block;
-            text-align: center;
-            color: #8a8d98;
-            text-decoration: none;
-            font-family: var(--font-display);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        .back-link:hover {
-            color: var(--text);
-        }
-    </style>
+    </script>
+    {% include "components/tokens.html" %}
 </head>
-<body>
-    <div class="container">
-        <div class="alert-badge">Período de testes expirado</div>
-        <h1>Seu trial de 14 dias chegou ao fim.</h1>
-        <p>Os dados do seu tenant <strong>{{ subdomain }}</strong> estão preservados, mas o acesso completo requer a ativação de uma assinatura Stripe.</p>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex items-center justify-center p-4 sm:p-8 antialiased selection:bg-brand-500/30 selection:text-white">
+    <div class="w-full max-w-xl bg-slate-900/60 border-2 border-brand-500/80 rounded-3xl p-8 hover:border-brand-500 shadow-2xl shadow-brand-500/5 transition-all duration-300 relative animate-fade-in">
+        <div class="absolute -top-4 left-6 bg-brand-500 text-slate-950 text-[10px] font-black font-outfit tracking-wider px-3 py-1 rounded-full uppercase">
+            Período de testes expirado
+        </div>
+
+        <h1 class="text-2xl sm:text-3xl font-black font-outfit text-white tracking-tight uppercase mt-2 mb-4">Seu trial de 14 dias chegou ao fim.</h1>
+        <p class="text-slate-400 text-sm mb-8 leading-relaxed">
+            Os dados do seu tenant <strong class="text-white">{{ subdomain }}</strong> estão preservados, mas o acesso completo requer a ativação de uma assinatura Stripe.
+        </p>
         
-        <div class="plan-options">
-            <div class="plan-row">
-                <div class="plan-details">
-                    <div class="plan-title">Plano Basic</div>
-                    <div class="plan-cost">R$ 199 / mês</div>
+        <div class="space-y-4 mb-8">
+            <div class="flex items-center justify-between p-4 bg-slate-950 border border-slate-800 hover:border-brand-500/30 rounded-2xl transition-all duration-200">
+                <div>
+                    <div class="text-sm font-bold text-white font-outfit uppercase">Plano Basic</div>
+                    <div class="text-xs text-slate-500 mt-0.5">R$ 199 / mês</div>
                 </div>
                 <form action="/stripe/create-checkout/" method="POST">
+                    {% csrf_token %}
                     <input type="hidden" name="plan" value="basic">
                     <input type="hidden" name="subdomain" value="{{ subdomain }}">
-                    <button type="submit" class="pay-btn">Ativar</button>
+                    {% include "components/btn.html" with type="submit" variant="primary" label="Ativar" size="sm" %}
                 </form>
             </div>
 
-            <div class="plan-row">
-                <div class="plan-details">
-                    <div class="plan-title">Plano Pro</div>
-                    <div class="plan-cost">R$ 499 / mês</div>
+            <div class="flex items-center justify-between p-4 bg-slate-950 border border-slate-800 hover:border-brand-500/30 rounded-2xl transition-all duration-200">
+                <div>
+                    <div class="text-sm font-bold text-white font-outfit uppercase">Plano Pro</div>
+                    <div class="text-xs text-slate-500 mt-0.5">R$ 499 / mês</div>
                 </div>
                 <form action="/stripe/create-checkout/" method="POST">
+                    {% csrf_token %}
                     <input type="hidden" name="plan" value="pro">
                     <input type="hidden" name="subdomain" value="{{ subdomain }}">
-                    <button type="submit" class="pay-btn">Ativar</button>
+                    {% include "components/btn.html" with type="submit" variant="primary" label="Ativar" size="sm" %}
                 </form>
             </div>
 
-            <div class="plan-row">
-                <div class="plan-details">
-                    <div class="plan-title">Plano Enterprise</div>
-                    <div class="plan-cost">R$ 1499 / mês</div>
+            <div class="flex items-center justify-between p-4 bg-slate-950 border border-slate-800 hover:border-brand-500/30 rounded-2xl transition-all duration-200">
+                <div>
+                    <div class="text-sm font-bold text-white font-outfit uppercase">Plano Enterprise</div>
+                    <div class="text-xs text-slate-500 mt-0.5">R$ 1499 / mês</div>
                 </div>
                 <form action="/stripe/create-checkout/" method="POST">
+                    {% csrf_token %}
                     <input type="hidden" name="plan" value="enterprise">
                     <input type="hidden" name="subdomain" value="{{ subdomain }}">
-                    <button type="submit" class="pay-btn">Ativar</button>
+                    {% include "components/btn.html" with type="submit" variant="primary" label="Ativar" size="sm" %}
                 </form>
             </div>
         </div>
 
-        <a href="/" class="back-link">Voltar para a página inicial</a>
+        <a href="/" class="block text-center text-xs font-bold text-slate-500 hover:text-white uppercase tracking-wider transition-colors">Voltar para a página inicial</a>
     </div>
 </body>
 </html>

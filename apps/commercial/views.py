@@ -49,7 +49,36 @@ def partner_detail_view(request, pk):
     Renders partner details with contacts and addresses.
     """
     partner = get_object_or_404(Partner, id=pk, tenant=request.tenant)
-    return render(request, "commercial/partner_detail.html", {"partner": partner})
+    audit_history = []
+    history_records = partner.history.all().order_by("-history_date")
+    for i in range(len(history_records)):
+        new_record = history_records[i]
+        if i + 1 < len(history_records):
+            old_record = history_records[i+1]
+            delta = new_record.diff_against(old_record)
+            fields_changed = []
+            for change in delta.changes:
+                fields_changed.append({
+                    "field": change.field,
+                    "old": change.old,
+                    "new": change.new
+                })
+            audit_history.append({
+                "date": new_record.history_date,
+                "user": new_record.history_user,
+                "type": "update",
+                "type_display": "Atualização",
+                "fields": fields_changed
+            })
+        else:
+            audit_history.append({
+                "date": new_record.history_date,
+                "user": new_record.history_user,
+                "type": "create",
+                "type_display": "Criação",
+                "fields": []
+            })
+    return render(request, "commercial/partner_detail.html", {"partner": partner, "audit_history": audit_history})
 
 
 @login_required

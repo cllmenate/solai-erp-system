@@ -1,0 +1,82 @@
+{% comment %}
+    SolAI ERP Design System Tokens (HeroUI-inspired)
+{% endcomment %}
+<style>
+    /* CSS Variables for HeroUI theme support and custom animation dynamics */
+    :root {
+        --ds-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        --ds-transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        --ds-transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Spring-physics animations for microinteractions */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.96);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fadeIn var(--ds-transition-normal) forwards;
+    }
+
+    .animate-slide-up {
+        animation: slideUp var(--ds-transition-normal) forwards;
+    }
+
+    .animate-scale-in {
+        animation: scaleIn var(--ds-transition-normal) forwards;
+    }
+
+    /* Custom scrollbar matching dark/light mode */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    .dark ::-webkit-scrollbar-track {
+        background: #0f172a;
+    }
+    ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+    }
+    .dark ::-webkit-scrollbar-thumb:hover {
+        background: #475569;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Custom HeroUI active click physical scale feedback */
+    .btn-active-scale:active {
+        transform: scale(0.97);
+    }
+</style>

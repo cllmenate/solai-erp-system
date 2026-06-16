@@ -97,6 +97,13 @@ class TenantMiddleware:
             request.tenant = tenant
             set_tenant_schema(tenant.schema_name)
             
+            # Block Tenant access to Django Admin
+            if path == "/admin" or path.startswith("/admin/"):
+                return JsonResponse(
+                    {"error": "Tenants do not have access to Django Admin"},
+                    status=403,
+                )
+            
             # Check trial status and Stripe subscription
             if (
                 tenant.trial_ends_at < timezone.now()
@@ -130,7 +137,7 @@ class TenantMiddleware:
                 "/api/stripe/webhook/",
                 "/auth/",
             ]
-            is_public = path == "/" or path == "/favicon.ico"
+            is_public = path == "/" or path == "/favicon.ico" or path == "/admin"
             for prefix in public_prefixes:
                 if path.startswith(prefix):
                     is_public = True

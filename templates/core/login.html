@@ -3,45 +3,43 @@
 {% block title %}Login — SolAI ERP{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-logo">SolAI<span>.</span>ERP</div>
+<div class="flex-1 flex items-center justify-center p-4 sm:p-8 animate-fade-in">
+    <div class="w-full max-w-md bg-slate-900/60 border border-slate-800/80 rounded-3xl p-8 hover:border-brand-500/40 shadow-2xl shadow-slate-950/50 transition-all duration-300">
+        <!-- Logo -->
+        <div class="text-3xl font-black font-outfit text-white text-center mb-8 tracking-tighter uppercase">
+            SOL<span class="text-brand-500">AI</span><span class="text-xs font-light text-slate-500 ml-1">ERP</span>
+        </div>
 
         {% if messages %}
-        <div class="alert-messages">
+        <div class="space-y-2 mb-6">
             {% for message in messages %}
-            <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
-                {{ message }}
-            </div>
+                {% include "components/alert.html" with type=message.tags message=message %}
             {% endfor %}
         </div>
         {% endif %}
 
-        <form method="post">
+        <form method="post" class="space-y-5">
             {% csrf_token %}
             {% if not request.tenant %}
-            <div class="form-group">
-                <label for="subdomain">Subdomínio (Workspace)</label>
-                <input type="text" name="subdomain" id="subdomain" class="form-control" placeholder="ex: minha-empresa" required autocomplete="off">
-            </div>
+                {% include "components/input.html" with type="text" name="subdomain" id="subdomain" label="Subdomínio (Workspace)" placeholder="ex: minha-empresa" required=True extra_attrs='autocomplete="off"' %}
             {% endif %}
 
-            <div class="form-group">
-                <label for="username_or_email">Usuário ou E-mail</label>
-                <input type="text" name="username_or_email" id="username_or_email" class="form-control" placeholder="ex: admin ou admin@empresa.com" required autocomplete="username" value="{{ request.GET.username_or_email|default:'' }}">
-            </div>
+            {% include "components/input.html" with type="text" name="username_or_email" id="username_or_email" label="Usuário ou E-mail" placeholder="ex: admin ou admin@empresa.com" required=True value=request.GET.username_or_email extra_attrs='autocomplete="username"' %}
 
-            <div class="form-group">
-                <label for="password">Senha</label>
-                <input type="password" name="password" id="password" class="form-control" placeholder="Sua senha secreta" required autocomplete="current-password">
-            </div>
+            {% include "components/input.html" with type="password" name="password" id="password" label="Senha" placeholder="Sua senha secreta" required=True extra_attrs='autocomplete="current-password"' %}
 
-            <button type="submit" class="btn-primary">Entrar no Sistema</button>
+            <div class="pt-2">
+                {% include "components/btn.html" with type="submit" variant="primary" label="Entrar no Sistema" custom_classes="w-full py-3" %}
+            </div>
         </form>
 
-        <div class="auth-footer">
-            <p><a href="{% url 'password_recovery' %}">Esqueceu a senha?</a></p>
-            <p style="margin-top: 1rem;">Ainda não tem conta? <a href="{% url 'signup_trial' %}">Comece um trial gratuito</a></p>
+        <div class="mt-8 text-center text-sm space-y-3">
+            <p>
+                <a href="{% url 'password_recovery' %}" class="text-slate-400 hover:text-brand-500 transition-colors">Esqueceu a senha?</a>
+            </p>
+            <p class="text-slate-500">
+                Ainda não tem conta? <a href="{% url 'signup_trial' %}" class="text-brand-500 hover:text-brand-600 font-semibold transition-colors">Comece um trial gratuito</a>
+            </p>
         </div>
     </div>
 </div>

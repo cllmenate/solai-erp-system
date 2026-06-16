@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
+from ninja.pagination import LimitOffsetPagination, paginate
 
 from apps.commercial.models import Address, Contact, Partner
 from apps.core.auth import JWTAuth
@@ -102,6 +103,7 @@ class MessageSchema(Schema):
 # --- Endpoints ---
 
 @router.get("/", response=list[PartnerSchema])
+@paginate(LimitOffsetPagination)
 def list_partners(
     request,
     partner_type: str | None = None,

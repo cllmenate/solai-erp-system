@@ -1,0 +1,120 @@
+{% if href %}
+<a href="{{ href }}"
+   {% if id %}id="{{ id }}"{% endif %}
+   class="btn-active-scale inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900
+          {% if variant == 'primary' %}
+              bg-brand-500 hover:bg-brand-600 text-white focus:ring-brand-500 shadow-lg shadow-brand-500/20
+          {% elif variant == 'secondary' %}
+              bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-slate-500
+          {% elif variant == 'danger' %}
+              bg-rose-500 hover:bg-rose-600 text-white focus:ring-rose-500 shadow-lg shadow-rose-500/20
+          {% elif variant == 'ghost' %}
+              bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300 focus:ring-slate-500
+          {% elif variant == 'outline' %}
+              bg-transparent border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300 focus:ring-slate-500
+          {% else %}
+              bg-brand-500 hover:bg-brand-600 text-white focus:ring-brand-500 shadow-lg shadow-brand-500/20
+          {% endif %}
+          {% if size == 'sm' %}
+              px-3 py-1.5 text-xs
+          {% elif size == 'lg' %}
+              px-6 py-3 text-lg
+          {% else %}
+              px-4 py-2.5 text-sm
+          {% endif %}
+          {{ custom_classes }}"
+   {{ extra_attrs|safe }}>
+    {% if icon == 'back' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+    {% elif icon == 'edit' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+    {% elif icon == 'cancel' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+    {% elif icon == 'save' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+        </svg>
+    {% elif icon == 'disable' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+        </svg>
+    {% elif icon == 'view' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+    {% endif %}
+    {% if label %}<span>{{ label }}</span>{% endif %}
+</a>
+{% else %}
+<button type="{{ type|default:'button' }}"
+        {% if id %}id="{{ id }}"{% endif %}
+        class="btn-active-scale inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900
+               {% if variant == 'primary' %}
+                   bg-brand-500 hover:bg-brand-600 text-white focus:ring-brand-500 shadow-lg shadow-brand-500/20
+               {% elif variant == 'secondary' %}
+                   bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-slate-500
+               {% elif variant == 'danger' %}
+                   bg-rose-500 hover:bg-rose-600 text-white focus:ring-rose-500 shadow-lg shadow-rose-500/20
+               {% elif variant == 'ghost' %}
+                   bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300 focus:ring-slate-500
+               {% elif variant == 'outline' %}
+                   bg-transparent border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300 focus:ring-slate-500
+               {% else %}
+                   bg-brand-500 hover:bg-brand-600 text-white focus:ring-brand-500 shadow-lg shadow-brand-500/20
+               {% endif %}
+               {% if size == 'sm' %}
+                   px-3 py-1.5 text-xs
+               {% elif size == 'lg' %}
+                   px-6 py-3 text-lg
+               {% else %}
+                   px-4 py-2.5 text-sm
+               {% endif %}
+               {% if disabled %}opacity-50 cursor-not-allowed{% endif %}
+               {{ custom_classes }}"
+        {% if disabled %}disabled{% endif %}
+        {{ extra_attrs|safe }}>
+    {% if loading %}
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+    {% elif icon == 'back' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+    {% elif icon == 'edit' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+    {% elif icon == 'cancel' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+    {% elif icon == 'save' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+        </svg>
+    {% elif icon == 'disable' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+        </svg>
+    {% elif icon == 'view' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+    {% elif icon == 'lock' %}
+        <svg class="h-5 w-5 {% if label %}mr-2 -ml-1{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+    {% endif %}
+    {% if label %}<span>{{ label }}</span>{% endif %}
+</button>
+{% endif %}

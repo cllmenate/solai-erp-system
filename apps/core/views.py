@@ -10,6 +10,7 @@ from django.contrib.auth.models import Permission
 from django.core.exceptions import PermissionDenied
 from django.core.signing import BadSignature, SignatureExpired, dumps, loads
 from django.db import connection
+from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.crypto import get_random_string
@@ -473,7 +474,11 @@ def profile_view(request):
 
 @tenant_permission_required("core.view_role")
 def role_list_view(request):
-    roles = Role.objects.filter(tenant=request.tenant).order_by("-level", "name")
+    search_query = request.GET.get("search", "")
+    roles = Role.objects.filter(tenant=request.tenant)
+    if search_query:
+        roles = roles.filter(Q(name__icontains=search_query))
+    roles = roles.order_by("-level", "name")
     
     # Check if there are active users assigned to deactivated roles
     user_model = get_user_model()
@@ -490,6 +495,7 @@ def role_list_view(request):
         "core/role_list.html",
         {
             "roles": roles,
+            "search_query": search_query,
             "warn_admin": warn_admin,
             "active_users_in_inactive_roles": active_users_in_inactive_roles,
         }
@@ -664,13 +670,18 @@ def role_permissions_view(request, pk):
 
 @tenant_permission_required("core.view_user")
 def user_list_view(request):
+    search_query = request.GET.get("search", "")
     user_model = get_user_model()
-    users = user_model.objects.filter(tenant=request.tenant).select_related("role", "role__sector").order_by("username")
+    users = user_model.objects.filter(tenant=request.tenant).select_related("role", "role__sector")
+    if search_query:
+        users = users.filter(Q(username__icontains=search_query) | Q(first_name__icontains=search_query) | Q(last_name__icontains=search_query) | Q(email__icontains=search_query))
+    users = users.order_by("username")
     return render(
         request,
         "core/user_list.html",
         {
             "users": users,
+            "search_query": search_query,
         }
     )
 

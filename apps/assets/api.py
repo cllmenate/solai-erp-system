@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
+from ninja.pagination import LimitOffsetPagination, paginate
 
 from apps.assets.models import Batch, Brand, Category, Item, Model, TechSheetTemplate
 from apps.core.auth import JWTAuth
@@ -143,6 +144,7 @@ class BatchSchema(Schema):
 # ================= BRAND ENDPOINTS =================
 
 @router.get("/brands", response=list[BrandSchema])
+@paginate(LimitOffsetPagination)
 def list_brands(request, is_active: bool | None = None):
     qs = Brand.objects.filter(tenant=request.tenant)
     if is_active is not None:
@@ -194,6 +196,7 @@ def delete_brand(request, brand_id: UUID):
 # ================= TEMPLATE ENDPOINTS =================
 
 @router.get("/templates", response=list[TechSheetTemplateSchema])
+@paginate(LimitOffsetPagination)
 def list_templates(request, is_active: bool | None = None):
     qs = TechSheetTemplate.objects.filter(tenant=request.tenant)
     if is_active is not None:
@@ -241,6 +244,7 @@ def update_template(request, template_id: UUID, data: TechSheetTemplateInputSche
 # ================= CATEGORY ENDPOINTS =================
 
 @router.get("/categories", response=list[CategorySchema])
+@paginate(LimitOffsetPagination)
 def list_categories(request, is_active: bool | None = None):
     qs = Category.objects.filter(tenant=request.tenant).prefetch_related("tech_sheet_templates")
     if is_active is not None:
@@ -311,6 +315,7 @@ def update_category(request, category_id: UUID, data: CategoryInputSchema):
 # ================= MODEL ENDPOINTS =================
 
 @router.get("/models", response=list[ModelSchema])
+@paginate(LimitOffsetPagination)
 def list_models(request, is_active: bool | None = None):
     qs = Model.objects.filter(tenant=request.tenant).select_related("brand").prefetch_related("categories", "tech_sheet_templates")
     if is_active is not None:
@@ -388,6 +393,7 @@ def update_model(request, model_id: UUID, data: ModelInputSchema):
 # ================= ITEM ENDPOINTS =================
 
 @router.get("/items", response=list[ItemSchema])
+@paginate(LimitOffsetPagination)
 def list_items(request, is_active: bool | None = None):
     qs = Item.objects.filter(tenant=request.tenant).select_related(
         "model", "model__brand"
@@ -453,6 +459,7 @@ def update_item(request, item_id: UUID, data: ItemInputSchema):
 # ================= BATCH ENDPOINTS =================
 
 @router.get("/batches", response=list[BatchSchema])
+@paginate(LimitOffsetPagination)
 def list_batches(request, is_active: bool | None = None):
     qs = Batch.objects.filter(item__tenant=request.tenant)
     if is_active is not None:

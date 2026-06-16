@@ -3,34 +3,34 @@
 {% block title %}Recuperação de Senha — SolAI ERP{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-logo">SolAI<span>.</span>ERP</div>
-        <h2 style="text-align: center; margin-bottom: 2rem; font-family: var(--font-display); font-size: 1.4rem;">Recuperar Senha</h2>
+<div class="flex-1 flex items-center justify-center p-4 sm:p-8 animate-fade-in">
+    <div class="w-full max-w-md bg-slate-900/60 border border-slate-800/80 rounded-3xl p-8 hover:border-brand-500/40 shadow-2xl shadow-slate-950/50 transition-all duration-300">
+        <!-- Logo -->
+        <div class="text-3xl font-black font-outfit text-white text-center mb-4 tracking-tighter uppercase">
+            SOL<span class="text-brand-500">AI</span><span class="text-xs font-light text-slate-500 ml-1">ERP</span>
+        </div>
+        <h2 class="text-center text-slate-300 font-outfit text-lg mb-8">Recuperar Senha</h2>
 
         {% if messages %}
-        <div class="alert-messages">
+        <div class="space-y-2 mb-6">
             {% for message in messages %}
-            <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
-                {{ message }}
-            </div>
+                {% include "components/alert.html" with type=message.tags message=message %}
             {% endfor %}
         </div>
         {% endif %}
 
-        <form method="post">
+        <form method="post" class="space-y-5">
             {% csrf_token %}
             
-            <div class="form-group">
-                <label for="email">E-mail Cadastrado</label>
-                <input type="email" name="email" id="email" class="form-control" placeholder="ex: admin@empresa.com" required autocomplete="email">
-            </div>
+            {% include "components/input.html" with type="email" name="email" id="email" label="E-mail Cadastrado" placeholder="ex: admin@empresa.com" required=True extra_attrs='autocomplete="email"' %}
 
-            <button type="submit" class="btn-primary" style="margin-top: 1rem;">Solicitar Link de Recuperação</button>
+            <div class="pt-2">
+                {% include "components/btn.html" with type="submit" variant="primary" label="Solicitar Link de Recuperação" custom_classes="w-full py-3" %}
+            </div>
         </form>
 
-        <div class="auth-footer">
-            <p>Lembrou a senha? <a href="{% url 'login' %}">Voltar para o Login</a></p>
+        <div class="mt-8 text-center text-sm text-slate-500">
+            <p>Lembrou a senha? <a href="{% url 'login' %}" class="text-brand-500 hover:text-brand-600 font-semibold transition-colors">Voltar para o Login</a></p>
         </div>
     </div>
 </div>

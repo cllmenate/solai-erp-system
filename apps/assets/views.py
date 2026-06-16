@@ -113,6 +113,7 @@ def item_create_view(request):
     if request.method == "POST":
         model_id = request.POST.get("model")
         item_type = request.POST.get("item_type")
+        name = request.POST.get("name")
         ncm = request.POST.get("ncm")
         sku = request.POST.get("sku")
         barcode = request.POST.get("barcode")
@@ -128,6 +129,7 @@ def item_create_view(request):
             with transaction.atomic():
                 item = Item.objects.create(
                     tenant=request.tenant,
+                    name=name,
                     model=model_obj,
                     item_type=item_type,
                     ncm=ncm,
@@ -169,6 +171,7 @@ def item_update_view(request, pk):
     if request.method == "POST":
         model_id = request.POST.get("model")
         item_type = request.POST.get("item_type")
+        name = request.POST.get("name")
         ncm = request.POST.get("ncm")
         sku = request.POST.get("sku")
         barcode = request.POST.get("barcode")
@@ -182,6 +185,7 @@ def item_update_view(request, pk):
 
         try:
             with transaction.atomic():
+                item.name = name
                 item.model = model_obj
                 item.item_type = item_type
                 item.ncm = ncm
@@ -229,8 +233,12 @@ def item_delete_view(request, pk):
 @login_required
 @tenant_permission_required("assets.view_brand")
 def brand_list_view(request):
-    brands = Brand.objects.filter(tenant=request.tenant, is_active=True).order_by("-created_at")
-    return render(request, "assets/brand_list.html", {"brands": brands})
+    search_query = request.GET.get("search", "")
+    brands = Brand.objects.filter(tenant=request.tenant, is_active=True)
+    if search_query:
+        brands = brands.filter(Q(name__icontains=search_query))
+    brands = brands.order_by("-created_at")
+    return render(request, "assets/brand_list.html", {"brands": brands, "search_query": search_query})
 
 
 @login_required
@@ -295,8 +303,12 @@ def brand_delete_view(request, pk):
 @login_required
 @tenant_permission_required("assets.view_category")
 def category_list_view(request):
-    categories = Category.objects.filter(tenant=request.tenant, is_active=True).order_by("-created_at")
-    return render(request, "assets/category_list.html", {"categories": categories})
+    search_query = request.GET.get("search", "")
+    categories = Category.objects.filter(tenant=request.tenant, is_active=True)
+    if search_query:
+        categories = categories.filter(Q(name__icontains=search_query))
+    categories = categories.order_by("-created_at")
+    return render(request, "assets/category_list.html", {"categories": categories, "search_query": search_query})
 
 
 @login_required
@@ -374,8 +386,12 @@ def category_delete_view(request, pk):
 @login_required
 @tenant_permission_required("assets.view_model")
 def model_list_view(request):
-    models_qs = Model.objects.filter(tenant=request.tenant, is_active=True).select_related("brand").order_by("-created_at")
-    return render(request, "assets/model_list.html", {"models": models_qs})
+    search_query = request.GET.get("search", "")
+    models_qs = Model.objects.filter(tenant=request.tenant, is_active=True).select_related("brand")
+    if search_query:
+        models_qs = models_qs.filter(Q(name__icontains=search_query) | Q(brand__name__icontains=search_query))
+    models_qs = models_qs.order_by("-created_at")
+    return render(request, "assets/model_list.html", {"models": models_qs, "search_query": search_query})
 
 
 @login_required
@@ -476,8 +492,52 @@ def model_delete_view(request, pk):
 @login_required
 @tenant_permission_required("assets.view_batch")
 def batch_list_view(request):
-    batches = Batch.objects.filter(item__tenant=request.tenant, is_active=True).select_related("item", "item__model").order_by("-created_at")
-    return render(request, "assets/batch_list.html", {"batches": batches})
+    search_query = request.GET.get("search", "")
+    batches = Batch.objects.filter(item__tenant=request.tenant, is_active=True).select_related("item", "item__model")
+    if search_query:
+        batches = batches.filter(Q(batch_code__icontains=search_query) | Q(item__name__icontains=search_query))
+    batches = batches.order_by("-created_at")
+    return render(request, "assets/batch_list.html", {"batches": batches, "search_query": search_query})
+
+
+@login_required
+@tenant_permission_required("assets.view_batch")
+def batch_detail_view(request, pk):
+    batch = get_object_or_404(Batch, id=pk, item__tenant=request.tenant)
+    audit_history = []
+    history_records = batch.history.all().order_by("-history_date")
+    for i in range(len(history_records)):
+        new_record = history_records[i]
+        if i + 1 < len(history_records):
+            old_record = history_records[i+1]
+            delta = new_record.diff_against(old_record)
+            fields_changed = []
+            for change in delta.changes:
+                fields_changed.append({
+                    "field": change.field,
+                    "old": change.old,
+                    "new": change.new
+                })
+            audit_history.append({
+                "date": new_record.history_date,
+                "user": new_record.history_user,
+                "type": "update",
+                "type_display": "Atualização",
+                "fields": fields_changed
+            })
+        else:
+            audit_history.append({
+                "date": new_record.history_date,
+                "user": new_record.history_user,
+                "type": "create",
+                "type_display": "Criação",
+                "fields": []
+            })
+    context = {
+        "batch": batch,
+        "audit_history": audit_history
+    }
+    return render(request, "assets/batch_detail.html", context)
 
 
 @login_required
@@ -695,3 +755,112 @@ def stock_dashboard_view(request):
     }
     return render(request, "assets/stock_dashboard.html", context)
 
+
+@tenant_permission_required("assets.view_brand")
+def brand_detail_view(request, pk):
+    brand = get_object_or_404(Brand, id=pk, tenant=request.tenant)
+    audit_history = []
+    history_records = brand.history.all().order_by("-history_date")
+    for record in history_records:
+        changes = []
+        if record.prev_record:
+            delta = record.diff_against(record.prev_record)
+            for change in delta.changes:
+                changes.append({
+                    "field": change.field,
+                    "old": change.old,
+                    "new": change.new
+                })
+        audit_history.append({
+            "date": record.history_date,
+            "user": record.history_user,
+            "type": "create" if record.history_type == "+" else "update",
+            "fields": changes
+        })
+    context = {
+        "brand": brand,
+        "audit_history": audit_history
+    }
+    return render(request, "assets/brand_detail.html", context)
+
+@tenant_permission_required("assets.view_category")
+def category_detail_view(request, pk):
+    category = get_object_or_404(Category, id=pk, tenant=request.tenant)
+    audit_history = []
+    history_records = category.history.all().order_by("-history_date")
+    for record in history_records:
+        changes = []
+        if record.prev_record:
+            delta = record.diff_against(record.prev_record)
+            for change in delta.changes:
+                changes.append({
+                    "field": change.field,
+                    "old": change.old,
+                    "new": change.new
+                })
+        audit_history.append({
+            "date": record.history_date,
+            "user": record.history_user,
+            "type": "create" if record.history_type == "+" else "update",
+            "fields": changes
+        })
+    context = {
+        "category": category,
+        "audit_history": audit_history
+    }
+    return render(request, "assets/category_detail.html", context)
+
+@tenant_permission_required("assets.view_model")
+def model_detail_view(request, pk):
+    model_obj = get_object_or_404(Model, id=pk, tenant=request.tenant)
+    audit_history = []
+    history_records = model_obj.history.all().order_by("-history_date")
+    for record in history_records:
+        changes = []
+        if record.prev_record:
+            delta = record.diff_against(record.prev_record)
+            for change in delta.changes:
+                changes.append({
+                    "field": change.field,
+                    "old": change.old,
+                    "new": change.new
+                })
+        audit_history.append({
+            "date": record.history_date,
+            "user": record.history_user,
+            "type": "create" if record.history_type == "+" else "update",
+            "fields": changes
+        })
+    context = {
+        "model": model_obj,
+        "audit_history": audit_history
+    }
+    return render(request, "assets/model_detail.html", context)
+
+@tenant_permission_required("assets.view_techsheettemplate")
+def tech_sheet_template_detail_view(request, pk):
+    from apps.assets.models import TechSheetTemplate
+    template = get_object_or_404(TechSheetTemplate, id=pk, tenant=request.tenant)
+    audit_history = []
+    history_records = template.history.all().order_by("-history_date")
+    for record in history_records:
+        changes = []
+        if record.prev_record:
+            delta = record.diff_against(record.prev_record)
+            for change in delta.changes:
+                changes.append({
+                    "field": change.field,
+                    "old": change.old,
+                    "new": change.new
+                })
+        audit_history.append({
+            "date": record.history_date,
+            "user": record.history_user,
+            "type": "create" if record.history_type == "+" else "update",
+            "fields": changes
+        })
+    context = {
+        "template": template,
+        "audit_history": audit_history
+    }
+    return render(request, "assets/tech_sheet_template_detail.html", context)
