@@ -3,6 +3,7 @@ import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
@@ -17,29 +18,90 @@ from apps.core.decorators import tenant_permission_required
 def item_list_view(request):
     """
     Renders list of items for the active tenant.
-    Supports basic searching by SKU, barcode, or name.
+    Supports advanced searching by SKU, barcode, NCM, category, brand, and item_type.
     """
     search_query = request.GET.get("search", "")
     item_type = request.GET.get("type", "")
+    brand_id = request.GET.get("brand", "")
+    category_id = request.GET.get("category", "")
+    ncm_query = request.GET.get("ncm", "")
+    min_sale_price = request.GET.get("min_sale_price", "")
+    max_sale_price = request.GET.get("max_sale_price", "")
+    min_acquisition_price = request.GET.get("min_acquisition_price", "")
+    max_acquisition_price = request.GET.get("max_acquisition_price", "")
 
-    queryset = Item.objects.filter(tenant=request.tenant, is_active=True).select_related("model", "model__brand")
+    queryset = Item.objects.filter(tenant=request.tenant, is_active=True).select_related(
+        "model", "model__brand"
+    ).prefetch_related(
+        "model__categories"
+    )
+
+    needs_distinct = False
 
     if search_query:
         queryset = queryset.filter(
             Q(sku__icontains=search_query) |
             Q(barcode__icontains=search_query) |
-            Q(name__icontains=search_query)
+            Q(ncm__icontains=search_query) |
+            Q(name__icontains=search_query) |
+            Q(model__name__icontains=search_query) |
+            Q(model__brand__name__icontains=search_query) |
+            Q(model__categories__name__icontains=search_query)
         )
+        needs_distinct = True
 
     if item_type:
         queryset = queryset.filter(item_type=item_type)
 
+    if ncm_query:
+        queryset = queryset.filter(ncm__icontains=ncm_query)
+
+    if brand_id:
+        queryset = queryset.filter(model__brand_id=brand_id)
+
+    if category_id:
+        queryset = queryset.filter(model__categories__id=category_id)
+        needs_distinct = True
+
+    if min_sale_price:
+        queryset = queryset.filter(sale_price__gte=min_sale_price)
+
+    if max_sale_price:
+        queryset = queryset.filter(sale_price__lte=max_sale_price)
+
+    if min_acquisition_price:
+        queryset = queryset.filter(acquisition_price__gte=min_acquisition_price)
+
+    if max_acquisition_price:
+        queryset = queryset.filter(acquisition_price__lte=max_acquisition_price)
+
+    if needs_distinct:
+        queryset = queryset.distinct()
+
     queryset = queryset.order_by("-created_at")
 
+    # Pagination: 20 items per page
+    paginator = Paginator(queryset, 20)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
+    brands = Brand.objects.filter(tenant=request.tenant, is_active=True).order_by("name")
+    categories = Category.objects.filter(tenant=request.tenant, is_active=True).order_by("name")
+
     context = {
-        "items": queryset,
+        "page_obj": page_obj,
+        "items": page_obj.object_list,
         "search_query": search_query,
         "item_type": item_type,
+        "brand_id": brand_id,
+        "category_id": category_id,
+        "ncm_query": ncm_query,
+        "min_sale_price": min_sale_price,
+        "max_sale_price": max_sale_price,
+        "min_acquisition_price": min_acquisition_price,
+        "max_acquisition_price": max_acquisition_price,
+        "brands": brands,
+        "categories": categories,
     }
     return render(request, "assets/item_list.html", context)
 
@@ -387,11 +449,25 @@ def category_delete_view(request, pk):
 @tenant_permission_required("assets.view_model")
 def model_list_view(request):
     search_query = request.GET.get("search", "")
+    category_id = request.GET.get("category", "")
     models_qs = Model.objects.filter(tenant=request.tenant, is_active=True).select_related("brand")
+    
     if search_query:
         models_qs = models_qs.filter(Q(name__icontains=search_query) | Q(brand__name__icontains=search_query))
+        
+    if category_id:
+        models_qs = models_qs.filter(categories__id=category_id).distinct()
+        
     models_qs = models_qs.order_by("-created_at")
-    return render(request, "assets/model_list.html", {"models": models_qs, "search_query": search_query})
+    categories = Category.objects.filter(tenant=request.tenant, is_active=True).order_by("name")
+    
+    context = {
+        "models": models_qs,
+        "search_query": search_query,
+        "category_id": category_id,
+        "categories": categories,
+    }
+    return render(request, "assets/model_list.html", context)
 
 
 @login_required
@@ -493,11 +569,34 @@ def model_delete_view(request, pk):
 @tenant_permission_required("assets.view_batch")
 def batch_list_view(request):
     search_query = request.GET.get("search", "")
+    status_query = request.GET.get("status", "")
+    expiry_min = request.GET.get("expiry_min", "")
+    expiry_max = request.GET.get("expiry_max", "")
+    
     batches = Batch.objects.filter(item__tenant=request.tenant, is_active=True).select_related("item", "item__model")
+    
     if search_query:
         batches = batches.filter(Q(batch_code__icontains=search_query) | Q(item__name__icontains=search_query))
+        
+    if status_query:
+        batches = batches.filter(status=status_query)
+        
+    if expiry_min:
+        batches = batches.filter(expiry_date__gte=expiry_min)
+        
+    if expiry_max:
+        batches = batches.filter(expiry_date__lte=expiry_max)
+        
     batches = batches.order_by("-created_at")
-    return render(request, "assets/batch_list.html", {"batches": batches, "search_query": search_query})
+    
+    context = {
+        "batches": batches,
+        "search_query": search_query,
+        "status_query": status_query,
+        "expiry_min": expiry_min,
+        "expiry_max": expiry_max,
+    }
+    return render(request, "assets/batch_list.html", context)
 
 
 @login_required

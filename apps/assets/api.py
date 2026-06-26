@@ -1,7 +1,9 @@
+from datetime import date
 from uuid import UUID
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
 from ninja.pagination import LimitOffsetPagination, paginate
@@ -134,8 +136,8 @@ class BatchSchema(Schema):
     is_active: bool
     item_id: UUID
     batch_code: str
-    manufacture_date: str
-    expiry_date: str
+    manufacture_date: date
+    expiry_date: date
     total_quantity: float
     stock_quantity: float
     status: str
@@ -316,10 +318,16 @@ def update_category(request, category_id: UUID, data: CategoryInputSchema):
 
 @router.get("/models", response=list[ModelSchema])
 @paginate(LimitOffsetPagination)
-def list_models(request, is_active: bool | None = None):
+def list_models(
+    request,
+    category_id: UUID | None = None,
+    is_active: bool | None = None,
+):
     qs = Model.objects.filter(tenant=request.tenant).select_related("brand").prefetch_related("categories", "tech_sheet_templates")
     if is_active is not None:
         qs = qs.filter(is_active=is_active)
+    if category_id:
+        qs = qs.filter(categories__id=category_id).distinct()
     return qs
 
 
@@ -394,7 +402,19 @@ def update_model(request, model_id: UUID, data: ModelInputSchema):
 
 @router.get("/items", response=list[ItemSchema])
 @paginate(LimitOffsetPagination)
-def list_items(request, is_active: bool | None = None):
+def list_items(
+    request,
+    search: str | None = None,
+    brand_id: UUID | None = None,
+    category_id: UUID | None = None,
+    item_type: str | None = None,
+    ncm: str | None = None,
+    min_sale_price: float | None = None,
+    max_sale_price: float | None = None,
+    min_acquisition_price: float | None = None,
+    max_acquisition_price: float | None = None,
+    is_active: bool | None = None,
+):
     qs = Item.objects.filter(tenant=request.tenant).select_related(
         "model", "model__brand"
     ).prefetch_related(
@@ -402,6 +422,32 @@ def list_items(request, is_active: bool | None = None):
     )
     if is_active is not None:
         qs = qs.filter(is_active=is_active)
+    if item_type:
+        qs = qs.filter(item_type=item_type)
+    if ncm:
+        qs = qs.filter(ncm__icontains=ncm)
+    if brand_id:
+        qs = qs.filter(model__brand_id=brand_id)
+    if category_id:
+        qs = qs.filter(model__categories__id=category_id)
+    if min_sale_price is not None:
+        qs = qs.filter(sale_price__gte=min_sale_price)
+    if max_sale_price is not None:
+        qs = qs.filter(sale_price__lte=max_sale_price)
+    if min_acquisition_price is not None:
+        qs = qs.filter(acquisition_price__gte=min_acquisition_price)
+    if max_acquisition_price is not None:
+        qs = qs.filter(acquisition_price__lte=max_acquisition_price)
+    if search:
+        qs = qs.filter(
+            Q(sku__icontains=search) |
+            Q(barcode__icontains=search) |
+            Q(ncm__icontains=search) |
+            Q(name__icontains=search) |
+            Q(model__name__icontains=search) |
+            Q(model__brand__name__icontains=search) |
+            Q(model__categories__name__icontains=search)
+        ).distinct()
     return qs
 
 
@@ -460,10 +506,22 @@ def update_item(request, item_id: UUID, data: ItemInputSchema):
 
 @router.get("/batches", response=list[BatchSchema])
 @paginate(LimitOffsetPagination)
-def list_batches(request, is_active: bool | None = None):
+def list_batches(
+    request,
+    status: str | None = None,
+    expiry_min: date | None = None,
+    expiry_max: date | None = None,
+    is_active: bool | None = None,
+):
     qs = Batch.objects.filter(item__tenant=request.tenant)
     if is_active is not None:
         qs = qs.filter(is_active=is_active)
+    if status:
+        qs = qs.filter(status=status)
+    if expiry_min:
+        qs = qs.filter(expiry_date__gte=expiry_min)
+    if expiry_max:
+        qs = qs.filter(expiry_date__lte=expiry_max)
     return qs
 
 

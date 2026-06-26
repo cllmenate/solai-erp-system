@@ -226,6 +226,115 @@ class TestAssetsAPIEndpoints:
         assert data["name"] == "Bebidas"
         assert Category.objects.filter(tenant=self.tenant, name="Bebidas").exists()
 
+    def test_list_items_advanced_search_and_filters(self):
+        brand = Brand.objects.create(tenant=self.tenant, name="Apple")
+        category = Category.objects.create(tenant=self.tenant, name="Smartphones")
+        model = Model.objects.create(tenant=self.tenant, name="iPhone 15", brand=brand)
+        model.categories.add(category)
+        
+        Item.objects.create(
+            tenant=self.tenant,
+            model=model,
+            item_type="product",
+            ncm="8517.13.00",
+            sku="APL-IPH15-01",
+            barcode="190199608518",
+            acquisition_price=800.0,
+            sale_price=1000.0,
+        )
+        
+        response = self.client.get(
+            "/api/assets/items?search=Apple",
+            **self.auth_headers
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["items"]) == 1
+        assert data["items"][0]["sku"] == "APL-IPH15-01"
+
+        response = self.client.get(
+            "/api/assets/items?ncm=8517",
+            **self.auth_headers
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["items"]) == 1
+
+    def test_list_items_price_filters_api(self):
+        brand = Brand.objects.create(tenant=self.tenant, name="Price Brand")
+        model = Model.objects.create(tenant=self.tenant, name="Price Model", brand=brand)
+        Item.objects.create(
+            tenant=self.tenant, model=model, item_type="product",
+            acquisition_price=10.0, sale_price=20.0, sku="P1"
+        )
+        Item.objects.create(
+            tenant=self.tenant, model=model, item_type="product",
+            acquisition_price=50.0, sale_price=100.0, sku="P2"
+        )
+        Item.objects.create(
+            tenant=self.tenant, model=model, item_type="product",
+            acquisition_price=200.0, sale_price=400.0, sku="P3"
+        )
+
+        response = self.client.get("/api/assets/items?min_sale_price=50&max_sale_price=150", **self.auth_headers)
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["sku"] == "P2"
+
+        response = self.client.get("/api/assets/items?min_acquisition_price=40&max_acquisition_price=250", **self.auth_headers)
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 2
+        skus = {item["sku"] for item in items}
+        assert skus == {"P2", "P3"}
+
+    def test_list_models_category_filter_api(self):
+        brand = Brand.objects.create(tenant=self.tenant, name="Model Brand")
+        cat1 = Category.objects.create(tenant=self.tenant, name="Cat One")
+        cat2 = Category.objects.create(tenant=self.tenant, name="Cat Two")
+        m1 = Model.objects.create(tenant=self.tenant, name="Model One", brand=brand)
+        m1.categories.add(cat1)
+        m2 = Model.objects.create(tenant=self.tenant, name="Model Two", brand=brand)
+        m2.categories.add(cat2)
+
+        response = self.client.get(f"/api/assets/models?category_id={cat1.id}", **self.auth_headers)
+        assert response.status_code == 200
+        models = response.json()["items"]
+        assert len(models) == 1
+        assert models[0]["name"] == "Model One"
+
+    def test_list_batches_status_and_date_filters_api(self):
+        brand = Brand.objects.create(tenant=self.tenant, name="Batch Brand")
+        model = Model.objects.create(tenant=self.tenant, name="Batch Model", brand=brand)
+        item = Item.objects.create(tenant=self.tenant, model=model, item_type="product")
+        today = timezone.now().date()
+        Batch.objects.create(
+            item=item, batch_code="B1", total_quantity=10, stock_quantity=10,
+            status="active", manufacture_date=today - timedelta(days=10),
+            expiry_date=today + timedelta(days=10)
+        )
+        Batch.objects.create(
+            item=item, batch_code="B2", total_quantity=10, stock_quantity=10,
+            status="expired", manufacture_date=today - timedelta(days=30),
+            expiry_date=today - timedelta(days=5)
+        )
+
+        response = self.client.get("/api/assets/batches?status=expired", **self.auth_headers)
+        assert response.status_code == 200
+        batches = response.json()["items"]
+        assert len(batches) == 1
+        assert batches[0]["batch_code"] == "B2"
+
+        response = self.client.get(
+            f"/api/assets/batches?expiry_min={today}&expiry_max={today + timedelta(days=20)}",
+            **self.auth_headers
+        )
+        assert response.status_code == 200
+        batches = response.json()["items"]
+        assert len(batches) == 1
+        assert batches[0]["batch_code"] == "B1"
+
 
 @pytest.mark.django_db
 class TestAssetsViews:
@@ -358,4 +467,101 @@ class TestAssetsViews:
         }, **self.headers)
         assert response.status_code == 302
         assert Batch.objects.filter(batch_code="B123_VIEWS").exists()
+
+    def test_item_list_advanced_search_and_pagination(self):
+        brand = Brand.objects.create(tenant=self.tenant, name="Coca-Cola Corp")
+        category = Category.objects.create(tenant=self.tenant, name="Refrigerantes")
+        model = Model.objects.create(tenant=self.tenant, name="Coca-Cola 2L", brand=brand)
+        model.categories.add(category)
+        
+        # Create 25 items to test pagination
+        for i in range(25):
+            Item.objects.create(
+                tenant=self.tenant,
+                model=model,
+                item_type="product",
+                sku=f"COC-2L-{i:03d}",
+                barcode=f"78949000100{i:02d}",
+                ncm="2202.10.00",
+            )
+            
+        # Test general search by brand name
+        response = self.client.get("/assets/items/?search=Coca-Cola", **self.headers)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "Coca-Cola" in content
+        assert "Mostrando de" in content
+        assert ">1<" in content
+        assert ">20<" in content
+        assert ">25<" in content
+        
+        # Test specific brand filter
+        response = self.client.get(f"/assets/items/?brand={brand.id}", **self.headers)
+        assert response.status_code == 200
+        content_brand = response.content.decode("utf-8")
+        assert "Mostrando de" in content_brand
+        assert ">1<" in content_brand
+        assert ">20<" in content_brand
+        assert ">25<" in content_brand
+
+    def test_item_list_price_filters_view(self):
+        brand = Brand.objects.create(tenant=self.tenant, name="View Brand")
+        model = Model.objects.create(tenant=self.tenant, name="View Model", brand=brand)
+        Item.objects.create(
+            tenant=self.tenant, model=model, item_type="product",
+            acquisition_price=10.0, sale_price=20.0, sku="VP1"
+        )
+        Item.objects.create(
+            tenant=self.tenant, model=model, item_type="product",
+            acquisition_price=50.0, sale_price=100.0, sku="VP2"
+        )
+
+        response = self.client.get("/assets/items/?min_sale_price=50&max_sale_price=150", **self.headers)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "VP2" in content
+        assert "VP1" not in content
+
+    def test_model_list_category_filter_view(self):
+        brand = Brand.objects.create(tenant=self.tenant, name="View Model Brand")
+        cat1 = Category.objects.create(tenant=self.tenant, name="V-Cat One")
+        cat2 = Category.objects.create(tenant=self.tenant, name="V-Cat Two")
+        m1 = Model.objects.create(tenant=self.tenant, name="V-Model One", brand=brand)
+        m1.categories.add(cat1)
+        m2 = Model.objects.create(tenant=self.tenant, name="V-Model Two", brand=brand)
+        m2.categories.add(cat2)
+
+        response = self.client.get(f"/assets/models/?category={cat1.id}", **self.headers)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "V-Model One" in content
+        assert "V-Model Two" not in content
+
+    def test_batch_list_status_and_date_filters_view(self):
+        brand = Brand.objects.create(tenant=self.tenant, name="View Batch Brand")
+        model = Model.objects.create(tenant=self.tenant, name="View Batch Model", brand=brand)
+        item = Item.objects.create(tenant=self.tenant, model=model, item_type="product")
+        today = timezone.now().date()
+        Batch.objects.create(
+            item=item, batch_code="VB1", total_quantity=10, stock_quantity=10,
+            status="active", manufacture_date=today - timedelta(days=10),
+            expiry_date=today + timedelta(days=10)
+        )
+        Batch.objects.create(
+            item=item, batch_code="VB2", total_quantity=10, stock_quantity=10,
+            status="expired", manufacture_date=today - timedelta(days=30),
+            expiry_date=today - timedelta(days=5)
+        )
+
+        response = self.client.get("/assets/batches/?status=expired", **self.headers)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "VB2" in content
+        assert "VB1" not in content
+
+        response = self.client.get(f"/assets/batches/?expiry_min={today}&expiry_max={today + timedelta(days=20)}", **self.headers)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "VB1" in content
+        assert "VB2" not in content
 

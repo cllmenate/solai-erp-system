@@ -232,6 +232,7 @@ class Item(BaseModel):
         max_length=10,
         blank=True,
         null=True,
+        db_index=True,
         verbose_name="NCM",
     )
     sku = models.CharField(
