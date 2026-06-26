@@ -19,30 +19,99 @@
 
     <!-- Filter Bar Card -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm">
-        <form method="GET" action="{% url 'item_list' %}" class="flex flex-col md:flex-row md:items-center gap-4">
-            <div class="relative flex-1">
-                <input type="text" name="search" value="{{ search_query }}" placeholder="Buscar por SKU, código de barras ou nome..."
-                       class="w-full pl-10 pr-4 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+        <form method="GET" action="{% url 'item_list' %}" class="space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center gap-4">
+                <div class="relative flex-1">
+                    <input type="text" name="search" value="{{ search_query }}" placeholder="Buscar por SKU, código de barras, nome, marca ou categoria..."
+                           class="w-full pl-10 pr-4 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="button" onclick="document.getElementById('advanced-filters').classList.toggle('hidden')" 
+                            class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all duration-200">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        Filtros Avançados
+                    </button>
+                    <button type="submit" class="px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-sm font-semibold transition-all duration-200">Filtrar</button>
+                    
+                    {% if search_query or item_type or brand_id or category_id or ncm_query or min_sale_price or max_sale_price or min_acquisition_price or max_acquisition_price %}
+                        <a href="{% url 'item_list' %}" class="text-xs text-slate-500 hover:text-brand-500 dark:text-slate-400 dark:hover:text-brand-400 underline transition-colors">Limpar Filtros</a>
+                    {% endif %}
                 </div>
             </div>
-            
-            <div class="flex flex-wrap items-center gap-3">
-                <select name="type" onchange="this.form.submit()"
-                        class="px-4 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
-                    <option value="">Todos os tipos</option>
-                    <option value="input" {% if item_type == 'input' %}selected{% endif %}>Insumos</option>
-                    <option value="product" {% if item_type == 'product' %}selected{% endif %}>Produtos</option>
-                    <option value="asset" {% if item_type == 'asset' %}selected{% endif %}>Ativos</option>
-                    <option value="consumable" {% if item_type == 'consumable' %}selected{% endif %}>Consumo</option>
-                </select>
-                
-                {% if search_query or item_type %}
-                    <a href="{% url 'item_list' %}" class="text-xs text-slate-500 hover:text-brand-500 dark:text-slate-400 dark:hover:text-brand-400 underline transition-colors">Limpar Filtros</a>
-                {% endif %}
+
+            <!-- Collapsible Section -->
+            <div id="advanced-filters" class="{% if not brand_id and not category_id and not item_type and not ncm_query and not min_sale_price and not max_sale_price and not min_acquisition_price and not max_acquisition_price %}hidden{% endif %} border-t border-slate-200/80 dark:border-slate-800/80 pt-4 mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Marca</label>
+                    <select name="brand" onchange="this.form.submit()"
+                            class="w-full px-4 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
+                        <option value="">Todas as Marcas</option>
+                        {% for brand in brands %}
+                            <option value="{{ brand.id }}" {% if brand_id == brand.id|stringformat:"s" %}selected{% endif %}>{{ brand.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Categoria</label>
+                    <select name="category" onchange="this.form.submit()"
+                            class="w-full px-4 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
+                        <option value="">Todas as Categorias</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% if category_id == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Tipo de Item</label>
+                    <select name="type" onchange="this.form.submit()"
+                            class="w-full px-4 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
+                        <option value="">Todos os tipos</option>
+                        <option value="input" {% if item_type == 'input' %}selected{% endif %}>Insumos</option>
+                        <option value="product" {% if item_type == 'product' %}selected{% endif %}>Produtos</option>
+                        <option value="asset" {% if item_type == 'asset' %}selected{% endif %}>Ativos</option>
+                        <option value="consumable" {% if item_type == 'consumable' %}selected{% endif %}>Consumo</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Código NCM</label>
+                    <input type="text" name="ncm" value="{{ ncm_query }}" placeholder="NCM..."
+                           class="w-full px-3 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Preço de Venda Mín.</label>
+                    <input type="number" step="0.01" name="min_sale_price" value="{{ min_sale_price }}" placeholder="Preço Min..."
+                           class="w-full px-3 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Preço de Venda Máx.</label>
+                    <input type="number" step="0.01" name="max_sale_price" value="{{ max_sale_price }}" placeholder="Preço Max..."
+                           class="w-full px-3 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Preço de Aquisição Mín.</label>
+                    <input type="number" step="0.01" name="min_acquisition_price" value="{{ min_acquisition_price }}" placeholder="Preço Min..."
+                           class="w-full px-3 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Preço de Aquisição Máx.</label>
+                    <input type="number" step="0.01" name="max_acquisition_price" value="{{ max_acquisition_price }}" placeholder="Preço Max..."
+                           class="w-full px-3 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200">
+                </div>
             </div>
         </form>
     </div>
@@ -115,6 +184,56 @@
                 {% endfor %}
             </tbody>
         </table>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="flex items-center justify-between border-t border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 px-4 py-3 sm:px-6">
+            <div class="flex flex-1 justify-between sm:hidden">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&type={{ item_type }}&brand={{ brand_id }}&category={{ category_id }}&ncm={{ ncm_query }}&min_sale_price={{ min_sale_price }}&max_sale_price={{ max_sale_price }}&min_acquisition_price={{ min_acquisition_price }}&max_acquisition_price={{ max_acquisition_price }}" class="relative inline-flex items-center rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800">Anterior</a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&type={{ item_type }}&brand={{ brand_id }}&category={{ category_id }}&ncm={{ ncm_query }}&min_sale_price={{ min_sale_price }}&max_sale_price={{ max_sale_price }}&min_acquisition_price={{ min_acquisition_price }}&max_acquisition_price={{ max_acquisition_price }}" class="relative ml-3 inline-flex items-center rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800">Próximo</a>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">
+                        Mostrando de <span class="font-medium text-slate-850 dark:text-slate-200">{{ page_obj.start_index }}</span> a <span class="font-medium text-slate-850 dark:text-slate-200">{{ page_obj.end_index }}</span> de <span class="font-medium text-slate-850 dark:text-slate-200">{{ page_obj.paginator.count }}</span> resultados
+                    </p>
+                </div>
+                <div>
+                    <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&type={{ item_type }}&brand={{ brand_id }}&category={{ category_id }}&ncm={{ ncm_query }}&min_sale_price={{ min_sale_price }}&max_sale_price={{ max_sale_price }}&min_acquisition_price={{ min_acquisition_price }}&max_acquisition_price={{ max_acquisition_price }}" class="relative inline-flex items-center rounded-l-xl px-3 py-2 text-slate-400 dark:text-slate-500 ring-1 ring-inset ring-slate-200 dark:ring-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 focus:z-20 focus:outline-offset-0">
+                                <span class="sr-only">Anterior</span>
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span aria-current="page" class="relative z-10 inline-flex items-center bg-brand-500 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600">{{ num }}</span>
+                            {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                                <a href="?page={{ num }}&search={{ search_query }}&type={{ item_type }}&brand={{ brand_id }}&category={{ category_id }}&ncm={{ ncm_query }}&min_sale_price={{ min_sale_price }}&max_sale_price={{ max_sale_price }}&min_acquisition_price={{ min_acquisition_price }}&max_acquisition_price={{ max_acquisition_price }}" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-900 dark:text-slate-250 ring-1 ring-inset ring-slate-200 dark:ring-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 focus:z-20 focus:outline-offset-0">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&type={{ item_type }}&brand={{ brand_id }}&category={{ category_id }}&ncm={{ ncm_query }}&min_sale_price={{ min_sale_price }}&max_sale_price={{ max_sale_price }}&min_acquisition_price={{ min_acquisition_price }}&max_acquisition_price={{ max_acquisition_price }}" class="relative inline-flex items-center rounded-r-xl px-3 py-2 text-slate-400 dark:text-slate-500 ring-1 ring-inset ring-slate-200 dark:ring-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 focus:z-20 focus:outline-offset-0">
+                                <span class="sr-only">Próximo</span>
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

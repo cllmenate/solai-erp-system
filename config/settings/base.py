@@ -39,8 +39,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "shared.middleware.tenant.TenantMiddleware",
-    "shared.middleware.ratelimit.RateLimitMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -48,6 +46,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "shared.middleware.tenant.TenantMiddleware",
+    "shared.middleware.ratelimit.RateLimitMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
