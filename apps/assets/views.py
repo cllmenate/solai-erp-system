@@ -5,7 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q, Sum
+from django.core.cache import cache
+from django.db.models import Count, F, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -757,6 +758,200 @@ def batch_delete_view(request, pk):
     batch = get_object_or_404(Batch, id=pk, item__tenant=request.tenant)
     batch.is_active = False
     batch.save()
+# ================= BATCH CRUD VIEWS =================
+
+@login_required
+@tenant_permission_required("assets.view_batch")
+def batch_list_view(request):
+    search_query = request.GET.get("search", "")
+    status_query = request.GET.get("status", "")
+    expiry_min = request.GET.get("expiry_min", "")
+    expiry_max = request.GET.get("expiry_max", "")
+    
+    batches = Batch.objects.filter(item__tenant=request.tenant, is_active=True).select_related("item", "item__model")
+    
+    if search_query:
+        batches = batches.filter(Q(batch_code__icontains=search_query) | Q(item__name__icontains=search_query))
+        
+    if status_query:
+        batches = batches.filter(status=status_query)
+        
+    if expiry_min:
+        batches = batches.filter(expiry_date__gte=expiry_min)
+        
+    if expiry_max:
+        batches = batches.filter(expiry_date__lte=expiry_max)
+        
+    batches = batches.order_by("-created_at")
+    
+    context = {
+        "batches": batches,
+        "search_query": search_query,
+        "status_query": status_query,
+        "expiry_min": expiry_min,
+        "expiry_max": expiry_max,
+    }
+    return render(request, "assets/batch_list.html", context)
+
+
+@login_required
+@tenant_permission_required("assets.view_batch")
+def batch_detail_view(request, pk):
+    batch = get_object_or_404(Batch, id=pk, item__tenant=request.tenant)
+    audit_history = []
+    history_records = batch.history.all().order_by("-history_date")
+    for i in range(len(history_records)):
+        new_record = history_records[i]
+        if i + 1 < len(history_records):
+            old_record = history_records[i+1]
+            delta = new_record.diff_against(old_record)
+            fields_changed = []
+            for change in delta.changes:
+                fields_changed.append({
+                    "field": change.field,
+                    "old": change.old,
+                    "new": change.new
+                })
+            audit_history.append({
+                "date": new_record.history_date,
+                "user": new_record.history_user,
+                "type": "update",
+                "type_display": "Atualização",
+                "fields": fields_changed
+            })
+        else:
+            audit_history.append({
+                "date": new_record.history_date,
+                "user": new_record.history_user,
+                "type": "create",
+                "type_display": "Criação",
+                "fields": []
+            })
+    transactions = batch.transactions.all().order_by("-created_at")
+    context = {
+        "batch": batch,
+        "audit_history": audit_history,
+        "transactions": transactions,
+    }
+    return render(request, "assets/batch_detail.html", context)
+
+
+@login_required
+@tenant_permission_required("assets.add_batch")
+def batch_create_view(request):
+    items = Item.objects.filter(tenant=request.tenant, is_active=True).select_related("model")
+    if request.method == "POST":
+        item_id = request.POST.get("item")
+        batch_code = request.POST.get("batch_code")
+        manufacture_date = request.POST.get("manufacture_date")
+        expiry_date = request.POST.get("expiry_date")
+        total_quantity = request.POST.get("total_quantity")
+        stock_quantity = request.POST.get("stock_quantity")
+        status = request.POST.get("status", "active")
+        description = request.POST.get("description")
+        
+        item = get_object_or_404(Item, id=item_id, tenant=request.tenant)
+        
+        try:
+            batch = Batch.objects.create(
+                item=item,
+                batch_code=batch_code,
+                manufacture_date=manufacture_date,
+                expiry_date=expiry_date,
+                total_quantity=total_quantity,
+                stock_quantity=stock_quantity,
+                status=status,
+                description=description,
+                created_by=request.user,
+                updated_by=request.user,
+            )
+            messages.success(request, f"Lote '{batch.batch_code}' criado com sucesso para o item '{item.name}'.")
+            return redirect("batch_list")
+        except ValidationError as e:
+            messages.error(request, f"Erro de validação: {e.messages}")
+        except Exception as e:
+            messages.error(request, f"Erro ao criar lote: {str(e)}")
+
+    return render(request, "assets/batch_form.html", {"items": items, "status_choices": Batch.STATUS_CHOICES})
+
+
+@login_required
+@tenant_permission_required("assets.change_batch")
+def batch_update_view(request, pk):
+    batch = get_object_or_404(Batch, id=pk, item__tenant=request.tenant)
+    items = Item.objects.filter(tenant=request.tenant, is_active=True).select_related("model")
+    if request.method == "POST":
+        item_id = request.POST.get("item")
+        
+        batch.item = get_object_or_404(Item, id=item_id, tenant=request.tenant)
+        batch.batch_code = request.POST.get("batch_code")
+        batch.manufacture_date = request.POST.get("manufacture_date")
+        batch.expiry_date = request.POST.get("expiry_date")
+        batch.total_quantity = request.POST.get("total_quantity")
+        batch.stock_quantity = request.POST.get("stock_quantity")
+        batch.status = request.POST.get("status")
+        batch.description = request.POST.get("description")
+        batch.updated_by = request.user
+        
+        try:
+            batch.save()
+            messages.success(request, f"Lote '{batch.batch_code}' atualizado com sucesso.")
+            return redirect("batch_list")
+        except ValidationError as e:
+            messages.error(request, f"Erro de validação: {e.messages}")
+        except Exception as e:
+            messages.error(request, f"Erro ao atualizar lote: {str(e)}")
+
+    # Calculate audit history using simple history for batch
+    history_records = batch.history.all().order_by("-history_date")
+    audit_history = []
+    
+    for i in range(len(history_records)):
+        new_record = history_records[i]
+        if i + 1 < len(history_records):
+            old_record = history_records[i+1]
+            delta = new_record.diff_against(old_record)
+            fields_changed = []
+            for change in delta.changes:
+                fields_changed.append({
+                    "field": change.field,
+                    "old": change.old,
+                    "new": change.new
+                })
+            audit_history.append({
+                "date": new_record.history_date,
+                "user": new_record.history_user,
+                "type": "update",
+                "type_display": "Atualização",
+                "fields": fields_changed
+            })
+        else:
+            audit_history.append({
+                "date": new_record.history_date,
+                "user": new_record.history_user,
+                "type": "create",
+                "type_display": "Criação",
+                "fields": []
+            })
+
+    return render(
+        request, 
+        "assets/batch_form.html", 
+        {
+            "batch": batch, 
+            "items": items, 
+            "status_choices": Batch.STATUS_CHOICES,
+            "audit_history": audit_history
+        }
+    )
+
+
+@login_required
+@tenant_permission_required("assets.delete_batch")
+def batch_delete_view(request, pk):
+    batch = get_object_or_404(Batch, id=pk, item__tenant=request.tenant)
+    batch.is_active = False
+    batch.save()
     messages.success(request, f"Lote '{batch.batch_code}' desativado com sucesso.")
     return redirect("batch_list")
 
@@ -766,94 +961,104 @@ def batch_delete_view(request, pk):
 def stock_dashboard_view(request):
     """
     Renders consolidated Stock/Assets Dashboard.
+    Uses Redis cache for real-time data efficiency.
     """
-    # 1. Total distinct active items
-    total_items = Item.objects.filter(tenant=request.tenant, is_active=True).count()
-
-    # 2. Total active stock quantity
-    total_qty = Batch.objects.filter(
-        item__tenant=request.tenant,
-        item__is_active=True,
-        is_active=True,
-        status="active"
-    ).aggregate(total=Sum("stock_quantity"))["total"] or 0
-
-    # 3. Total value of inventory
-    batches = Batch.objects.filter(
-        item__tenant=request.tenant,
-        item__is_active=True,
-        is_active=True,
-        status="active"
-    ).select_related("item")
-    total_value = sum(b.stock_quantity * b.item.acquisition_price for b in batches)
-
-    # 4. Expiration warnings (expired or expiring in next 30 days)
-    now_date = timezone.now().date()
-    thirty_days_hence = now_date + datetime.timedelta(days=30)
+    tenant_id = request.tenant.id
+    cache_key = f"dashboard_metrics_{tenant_id}"
     
-    expiring_batches = Batch.objects.filter(
-        item__tenant=request.tenant,
-        item__is_active=True,
-        is_active=True,
-        status="active",
-        expiry_date__lte=thirty_days_hence
-    ).select_related("item", "item__model").order_by("expiry_date")
+    context = cache.get(cache_key)
+    
+    if not context:
+        # 1. Total distinct active items
+        total_items = Item.objects.filter(tenant=request.tenant, is_active=True).count()
 
-    expired_count = expiring_batches.filter(expiry_date__lt=now_date).count()
-    expiring_soon_count = expiring_batches.filter(expiry_date__gte=now_date).count()
-    total_expiration_alerts = expiring_batches.count()
-
-    # 5. Low stock warnings (total stock quantity < minimum_stock)
-    items = Item.objects.filter(
-        tenant=request.tenant,
-        is_active=True
-    ).annotate(
-        current_stock=Sum("batches__stock_quantity", filter=Q(batches__is_active=True, batches__status="active"))
-    ).select_related("model")
-
-    low_stock_items = []
-    for item in items:
-        curr_stock = item.current_stock or 0
-        if curr_stock < item.minimum_stock:
-            low_stock_items.append({
-                "item": item,
-                "current_stock": curr_stock,
-                "minimum_stock": item.minimum_stock
-            })
-    low_stock_count = len(low_stock_items)
-
-    # 6. Consolidated stock by Category
-    categories = Category.objects.filter(tenant=request.tenant, is_active=True)
-    category_data = []
-    for cat in categories:
-        cat_items = Item.objects.filter(
-            tenant=request.tenant,
+        # 2. Total active stock quantity
+        total_qty = Batch.objects.filter(
+            item__tenant=request.tenant,
+            item__is_active=True,
             is_active=True,
-            model__categories=cat
-        ).annotate(
-            qty=Sum("batches__stock_quantity", filter=Q(batches__is_active=True, batches__status="active"))
-        )
-        qty_sum = sum(i.qty or 0 for i in cat_items)
-        if qty_sum > 0 or cat_items.exists():
-            category_data.append({
-                "category": cat,
-                "total_quantity": qty_sum,
-                "items_count": cat_items.count()
-            })
+            status="active"
+        ).aggregate(total=Sum("stock_quantity"))["total"] or 0
 
-    context = {
-        "total_items": total_items,
-        "total_qty": total_qty,
-        "total_value": total_value,
-        "expired_count": expired_count,
-        "expiring_soon_count": expiring_soon_count,
-        "total_expiration_alerts": total_expiration_alerts,
-        "expiring_batches": expiring_batches,
-        "low_stock_items": low_stock_items,
-        "low_stock_count": low_stock_count,
-        "category_data": category_data,
-        "items": items,
-    }
+        # 3. Total value of inventory
+        batches = Batch.objects.filter(
+            item__tenant=request.tenant,
+            item__is_active=True,
+            is_active=True,
+            status="active"
+        ).select_related("item")
+        total_value = sum(b.stock_quantity * b.item.acquisition_price for b in batches)
+
+        # 4. Expiration warnings (expired or expiring in next 30 days)
+        now_date = timezone.now().date()
+        thirty_days_hence = now_date + datetime.timedelta(days=30)
+        
+        expiring_batches = Batch.objects.filter(
+            item__tenant=request.tenant,
+            item__is_active=True,
+            is_active=True,
+            status="active",
+            expiry_date__lte=thirty_days_hence
+        ).select_related("item", "item__model").order_by("expiry_date")
+
+        expired_count = expiring_batches.filter(expiry_date__lt=now_date).count()
+        expiring_soon_count = expiring_batches.filter(expiry_date__gte=now_date).count()
+        total_expiration_alerts = expiring_batches.count()
+
+        # 5. Low stock warnings (total stock quantity < minimum_stock)
+        items = Item.objects.filter(
+            tenant=request.tenant,
+            is_active=True
+        ).annotate(
+            current_stock=Sum("batches__stock_quantity", filter=Q(batches__is_active=True, batches__status="active"))
+        ).select_related("model")
+
+        low_stock_items = []
+        for item in items:
+            curr_stock = item.current_stock or 0
+            if curr_stock < item.minimum_stock:
+                low_stock_items.append({
+                    "item": item,
+                    "current_stock": curr_stock,
+                    "minimum_stock": item.minimum_stock
+                })
+        low_stock_count = len(low_stock_items)
+
+        # 6. Consolidated stock by Category
+        categories = Category.objects.filter(tenant=request.tenant, is_active=True)
+        category_data = []
+        for cat in categories:
+            cat_items = Item.objects.filter(
+                tenant=request.tenant,
+                is_active=True,
+                model__categories=cat
+            ).annotate(
+                qty=Sum("batches__stock_quantity", filter=Q(batches__is_active=True, batches__status="active"))
+            )
+            qty_sum = sum(i.qty or 0 for i in cat_items)
+            if qty_sum > 0 or cat_items.exists():
+                category_data.append({
+                    "category": cat,
+                    "total_quantity": qty_sum,
+                    "items_count": cat_items.count()
+                })
+
+        context = {
+            "total_items": total_items,
+            "total_qty": total_qty,
+            "total_value": total_value,
+            "expired_count": expired_count,
+            "expiring_soon_count": expiring_soon_count,
+            "total_expiration_alerts": total_expiration_alerts,
+            "expiring_batches": list(expiring_batches),
+            "low_stock_items": low_stock_items,
+            "low_stock_count": low_stock_count,
+            "category_data": category_data,
+            "items": list(items),
+        }
+        
+        cache.set(cache_key, context, timeout=900)
+
     return render(request, "assets/stock_dashboard.html", context)
 
 
@@ -1039,4 +1244,3 @@ def stock_transaction_create_view(request):
         "batch_id": request.GET.get("batch_id", "")
     }
     return render(request, "assets/stock_transaction_form.html", context)
-
