@@ -168,6 +168,80 @@ class TestAssetsModels:
         with pytest.raises(ValidationError):
             batch.save()
 
+    def test_stock_transaction_model(self):
+        """
+        Verify that StockTransaction correctly registers manual input/output
+        and validates inventory levels to prevent negative stock.
+        """
+        from apps.assets.models import StockTransaction
+        model_obj = Model.objects.create(
+            tenant=self.tenant,
+            name="Model Trans",
+            brand=self.brand,
+            unit_of_measure="un"
+        )
+        item = Item.objects.create(
+            tenant=self.tenant,
+            model=model_obj,
+            item_type="product"
+        )
+        today = timezone.now().date()
+        batch = Batch.objects.create(
+            item=item,
+            batch_code= "T001",
+            manufacture_date=today,
+            expiry_date=today + timedelta(days=10),
+            total_quantity=50.0,
+            stock_quantity=50.0
+        )
+
+        # Test valid input (entrada)
+        tx_in = StockTransaction.objects.create(
+            tenant=self.tenant,
+            batch=batch,
+            transaction_type="input",
+            quantity=10.0,
+            description="Entrada manual"
+        )
+        batch.refresh_from_db()
+        assert batch.stock_quantity == 60.0
+        assert tx_in.name == "Entrada - Lote T001 (10.000)"
+
+        # Test valid output (saída)
+        StockTransaction.objects.create(
+            tenant=self.tenant,
+            batch=batch,
+            transaction_type="output",
+            quantity=25.0,
+            description="Saída manual"
+        )
+        batch.refresh_from_db()
+        assert batch.stock_quantity == 35.0
+
+        # Test invalid output (saída) exceeding stock
+        with pytest.raises(ValidationError):
+            StockTransaction.objects.create(
+                tenant=self.tenant,
+                batch=batch,
+                transaction_type="output",
+                quantity=40.0,
+                description="Saída excessiva"
+            )
+
+        # Check stock remained same
+        batch.refresh_from_db()
+        assert batch.stock_quantity == 35.0
+
+        # Test quantity <= 0 validation
+        with pytest.raises(ValidationError):
+            StockTransaction.objects.create(
+                tenant=self.tenant,
+                batch=batch,
+                transaction_type="input",
+                quantity=-5.0,
+                description="Quantidade negativa"
+            )
+
 
 @pytest.mark.django_db
 class TestAssetsAPIEndpoints:
@@ -334,6 +408,78 @@ class TestAssetsAPIEndpoints:
         batches = response.json()["items"]
         assert len(batches) == 1
         assert batches[0]["batch_code"] == "B1"
+
+    def test_stock_transaction_api(self):
+        """
+        Verify Django Ninja API endpoints for stock transactions.
+        """
+        brand = Brand.objects.create(tenant=self.tenant, name="API Brand")
+        model = Model.objects.create(tenant=self.tenant, name="API Model", brand=brand)
+        item = Item.objects.create(tenant=self.tenant, model=model, item_type="product")
+        today = timezone.now().date()
+        batch = Batch.objects.create(
+            item=item, batch_code="AB1", total_quantity=100.0, stock_quantity=100.0,
+            manufacture_date=today, expiry_date=today + timedelta(days=10)
+        )
+
+        # Create input transaction via API
+        payload = {
+            "batch_id": str(batch.id),
+            "transaction_type": "input",
+            "quantity": 20.0,
+            "description": "Entrada API"
+        }
+        response = self.client.post(
+            "/api/assets/stock/transactions",
+            data=payload,
+            content_type="application/json",
+            **self.auth_headers
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["transaction_type"] == "input"
+        assert float(data["quantity"]) == 20.0
+
+        batch.refresh_from_db()
+        assert batch.stock_quantity == 120.0
+
+        # Create output transaction via API
+        payload_out = {
+            "batch_id": str(batch.id),
+            "transaction_type": "output",
+            "quantity": 50.0,
+            "description": "Saída API"
+        }
+        response = self.client.post(
+            "/api/assets/stock/transactions",
+            data=payload_out,
+            content_type="application/json",
+            **self.auth_headers
+        )
+        assert response.status_code == 201
+        batch.refresh_from_db()
+        assert batch.stock_quantity == 70.0
+
+        # Create output transaction exceeding stock (should return 400)
+        payload_fail = {
+            "batch_id": str(batch.id),
+            "transaction_type": "output",
+            "quantity": 100.0,
+            "description": "Saída excessiva API"
+        }
+        response = self.client.post(
+            "/api/assets/stock/transactions",
+            data=payload_fail,
+            content_type="application/json",
+            **self.auth_headers
+        )
+        assert response.status_code == 400
+
+        # List transactions via API
+        response = self.client.get("/api/assets/stock/transactions", **self.auth_headers)
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 2
 
 
 @pytest.mark.django_db
@@ -564,4 +710,43 @@ class TestAssetsViews:
         content = response.content.decode("utf-8")
         assert "VB1" in content
         assert "VB2" not in content
+
+    def test_stock_transaction_views(self):
+        """
+        Verify web views for listing and creating stock transactions.
+        """
+        brand = Brand.objects.create(tenant=self.tenant, name="View Tx Brand")
+        model = Model.objects.create(tenant=self.tenant, name="View Tx Model", brand=brand)
+        item = Item.objects.create(tenant=self.tenant, model=model, item_type="product")
+        today = timezone.now().date()
+        batch = Batch.objects.create(
+            item=item, batch_code="VTB1", total_quantity=100.0, stock_quantity=100.0,
+            manufacture_date=today, expiry_date=today + timedelta(days=10)
+        )
+
+        # 1. Create Stock Transaction via Web form (Post)
+        response = self.client.post("/assets/stock/transactions/create/", {
+            "batch": str(batch.id),
+            "transaction_type": "input",
+            "quantity": "15.000",
+            "description": "Entrada form"
+        }, **self.headers)
+        assert response.status_code == 302
+        batch.refresh_from_db()
+        assert batch.stock_quantity == 115.0
+
+        # 2. View Stock Transactions List
+        response = self.client.get("/assets/stock/transactions/", **self.headers)
+        assert response.status_code == 200
+        content = response.content.decode("utf-8")
+        assert "Entrada form" in content
+        assert "VTB1" in content
+
+        # 3. View Batch Detail to ensure transaction ledger is visible
+        response = self.client.get(f"/assets/batches/{batch.id}/", **self.headers)
+        assert response.status_code == 200
+        content_detail = response.content.decode("utf-8")
+        assert "Entrada form" in content_detail
+        assert "Lançar Movimentação" in content_detail
+
 

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from django.core.exceptions import ValidationError
@@ -8,7 +8,15 @@ from django.shortcuts import get_object_or_404
 from ninja import Router, Schema
 from ninja.pagination import LimitOffsetPagination, paginate
 
-from apps.assets.models import Batch, Brand, Category, Item, Model, TechSheetTemplate
+from apps.assets.models import (
+    Batch,
+    Brand,
+    Category,
+    Item,
+    Model,
+    StockTransaction,
+    TechSheetTemplate,
+)
 from apps.core.auth import JWTAuth
 
 router = Router(auth=JWTAuth())
@@ -141,6 +149,26 @@ class BatchSchema(Schema):
     total_quantity: float
     stock_quantity: float
     status: str
+
+
+# --- Stock Transaction Schemas ---
+class StockTransactionInputSchema(Schema):
+    batch_id: UUID
+    transaction_type: str
+    quantity: float
+    description: str | None = None
+
+
+class StockTransactionSchema(Schema):
+    id: UUID
+    name: str
+    description: str | None = None
+    is_active: bool
+    batch_id: UUID
+    transaction_type: str
+    quantity: float
+    created_at: datetime
+
 
 
 # ================= BRAND ENDPOINTS =================
@@ -569,3 +597,35 @@ def update_batch(request, batch_id: UUID, data: BatchInputSchema):
         return 200, batch
     except ValidationError as e:
         return 400, {"message": str(e)}
+
+
+# ================= STOCK TRANSACTION ENDPOINTS =================
+
+@router.get("/stock/transactions", response=list[StockTransactionSchema])
+@paginate(LimitOffsetPagination)
+def list_stock_transactions(request):
+    return StockTransaction.objects.filter(tenant=request.tenant)
+
+
+@router.post("/stock/transactions", response={201: StockTransactionSchema, 400: MessageSchema})
+def create_stock_transaction(request, data: StockTransactionInputSchema):
+    batch = get_object_or_404(Batch, id=data.batch_id, item__tenant=request.tenant)
+    try:
+        with transaction.atomic():
+            tx = StockTransaction.objects.create(
+                tenant=request.tenant,
+                batch=batch,
+                transaction_type=data.transaction_type,
+                quantity=data.quantity,
+                description=data.description,
+                created_by=request.auth,
+                updated_by=request.auth,
+            )
+            return 201, tx
+    except ValidationError as e:
+        # Django ValidationErrors can be a list or dict of messages
+        msg = e.message if hasattr(e, "message") else ", ".join(e.messages)
+        return 400, {"message": msg}
+    except Exception as e:
+        return 400, {"message": str(e)}
+

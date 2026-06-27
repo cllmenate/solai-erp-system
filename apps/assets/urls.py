@@ -43,4 +43,8 @@ urlpatterns = [
     path("batches/<uuid:pk>/", views.batch_detail_view, name="batch_detail"),
     path("batches/<uuid:pk>/edit/", views.batch_update_view, name="batch_edit"),
     path("batches/<uuid:pk>/delete/", views.batch_delete_view, name="batch_delete"),
+
+    # Stock Transactions
+    path("stock/transactions/", views.stock_transaction_list_view, name="stock_transaction_list"),
+    path("stock/transactions/create/", views.stock_transaction_create_view, name="stock_transaction_create"),
 ]
