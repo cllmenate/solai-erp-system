@@ -1,0 +1,133 @@
+{% extends "commercial/base_dashboard.html" %}
+
+{% block title %}Movimentações de Estoque - SolAI ERP{% endblock %}
+{% block page_title %}Histórico de Movimentações de Estoque{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6 animate-fade-in">
+    <!-- Header Controls -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between pb-5 border-b border-slate-200/80 dark:border-slate-800/80 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white font-outfit">Movimentações de Estoque</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Consulte o histórico de todas as entradas e saídas de itens realizadas pelos operadores.</p>
+        </div>
+        <div>
+            {% url 'stock_transaction_create' as create_url %}
+            {% include "components/btn.html" with variant="primary" label="Lançar Movimentação" href=create_url %}
+        </div>
+    </div>
+
+    <!-- Filter Bar Card -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm">
+        <form method="GET" action="{% url 'stock_transaction_list' %}" class="flex flex-col md:flex-row md:items-center gap-4">
+            <div class="relative flex-1">
+                <input 
+                    type="text" 
+                    name="search" 
+                    value="{{ search_query }}" 
+                    placeholder="Buscar por lote, nome do item ou justificativa..."
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200"
+                >
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <button type="submit" class="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-xl transition-all duration-200">
+                    Pesquisar
+                </button>
+                {% if search_query %}
+                    <a href="{% url 'stock_transaction_list' %}" class="text-xs text-slate-500 hover:text-brand-500 dark:text-slate-400 dark:hover:text-brand-400 underline transition-colors">Limpar Filtros</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Card -->
+    <div class="w-full overflow-x-auto bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+                    <th scope="col" class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data / Hora</th>
+                    <th scope="col" class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lote / Item</th>
+                    <th scope="col" class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tipo</th>
+                    <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Quantidade</th>
+                    <th scope="col" class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Operador</th>
+                    <th scope="col" class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Justificativa</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-sm">
+                {% for tx in transactions %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-slate-500 dark:text-slate-400 font-mono text-xs">
+                            {{ tx.created_at|date:"d/m/Y H:i:s" }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="font-mono font-semibold text-slate-900 dark:text-slate-100 block">{{ tx.batch.batch_code }}</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">{{ tx.batch.item.name }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if tx.transaction_type == 'input' %}
+                                {% include "components/badge.html" with variant="success" label="Entrada" %}
+                            {% else %}
+                                {% include "components/badge.html" with variant="danger" label="Saída" %}
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right font-mono font-semibold text-slate-800 dark:text-slate-200">
+                            {% if tx.transaction_type == 'input' %}+{% else %}-{% endif %}{{ tx.quantity }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-slate-700 dark:text-slate-300">
+                            {{ tx.created_by.username|default:"Sistema" }}
+                        </td>
+                        <td class="px-6 py-4 text-slate-600 dark:text-slate-405 max-w-xs truncate" title="{{ tx.description }}">
+                            {{ tx.description|default:"—" }}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-400 dark:text-slate-500">
+                            <div class="flex flex-col items-center justify-center space-y-3">
+                                <svg class="h-10 w-10 text-slate-300 dark:text-slate-750" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 01-2 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                                <span>Nenhuma movimentação de estoque encontrada.</span>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+        <div class="flex items-center justify-between border-t border-slate-200/80 dark:border-slate-800/80 pt-6">
+            <span class="text-xs text-slate-500 dark:text-slate-400">
+                Mostrando de {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} registros
+            </span>
+            <div class="flex items-center gap-1.5">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}"
+                       class="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-sm transition-all duration-200">
+                        &larr;
+                    </a>
+                {% endif %}
+                
+                <span class="px-3.5 py-2 bg-brand-500 text-white rounded-xl text-sm font-semibold select-none">
+                    {{ page_obj.number }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}"
+                       class="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-sm transition-all duration-200">
+                        &rarr;
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

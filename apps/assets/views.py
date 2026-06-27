@@ -9,7 +9,7 @@ from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from apps.assets.models import Batch, Brand, Category, Item, Model
+from apps.assets.models import Batch, Brand, Category, Item, Model, StockTransaction
 from apps.core.decorators import tenant_permission_required
 
 
@@ -632,9 +632,11 @@ def batch_detail_view(request, pk):
                 "type_display": "Criação",
                 "fields": []
             })
+    transactions = batch.transactions.all().order_by("-created_at")
     context = {
         "batch": batch,
-        "audit_history": audit_history
+        "audit_history": audit_history,
+        "transactions": transactions,
     }
     return render(request, "assets/batch_detail.html", context)
 
@@ -963,3 +965,78 @@ def tech_sheet_template_detail_view(request, pk):
         "audit_history": audit_history
     }
     return render(request, "assets/tech_sheet_template_detail.html", context)
+
+
+@login_required
+@tenant_permission_required("assets.view_batch")
+def stock_transaction_list_view(request):
+    """
+    List all stock transactions for the active tenant.
+    """
+    search_query = request.GET.get("search", "")
+    queryset = StockTransaction.objects.filter(tenant=request.tenant).select_related(
+        "batch", "batch__item", "created_by"
+    )
+
+    if search_query:
+        queryset = queryset.filter(
+            Q(name__icontains=search_query) |
+            Q(batch__batch_code__icontains=search_query) |
+            Q(batch__item__name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+
+    # Pagination: 20 per page
+    paginator = Paginator(queryset, 20)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "page_obj": page_obj,
+        "transactions": page_obj.object_list,
+        "search_query": search_query,
+    }
+    return render(request, "assets/stock_transaction_list.html", context)
+
+
+@login_required
+@tenant_permission_required("assets.add_batch")
+def stock_transaction_create_view(request):
+    """
+    Create a new manual stock transaction (input or output).
+    """
+    batches = Batch.objects.filter(item__tenant=request.tenant, is_active=True).select_related("item")
+    
+    if request.method == "POST":
+        batch_id = request.POST.get("batch")
+        transaction_type = request.POST.get("transaction_type")
+        quantity = request.POST.get("quantity")
+        description = request.POST.get("description")
+        
+        batch = get_object_or_404(Batch, id=batch_id, item__tenant=request.tenant)
+        
+        try:
+            with transaction.atomic():
+                tx = StockTransaction.objects.create(
+                    tenant=request.tenant,
+                    batch=batch,
+                    transaction_type=transaction_type,
+                    quantity=quantity,
+                    description=description,
+                    created_by=request.user,
+                    updated_by=request.user,
+                )
+                messages.success(request, f"Movimentação registrada com sucesso: {tx.name}.")
+                return redirect("stock_transaction_list")
+        except ValidationError as e:
+            messages.error(request, f"Erro de validação: {e.messages}")
+        except Exception as e:
+            messages.error(request, f"Erro ao registrar movimentação: {str(e)}")
+
+    context = {
+        "batches": batches,
+        "transaction_types": StockTransaction.TRANSACTION_TYPES,
+        "batch_id": request.GET.get("batch_id", "")
+    }
+    return render(request, "assets/stock_transaction_form.html", context)
+

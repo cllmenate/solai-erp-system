@@ -391,3 +391,81 @@ class Batch(BaseModel):
             self.name = f"Lote {self.batch_code} - {self.item.name}"
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class StockTransaction(BaseModel):
+    """
+    Represents a manual inventory stock transaction (input or output).
+    Ensures that the corresponding batch inventory is updated atomically
+    and never drops below zero (BATCH-03).
+    """
+    TRANSACTION_TYPES = [
+        ("input", "Entrada"),
+        ("output", "Saída"),
+    ]
+
+    tenant = models.ForeignKey(
+        "core.Tenant",
+        on_delete=models.CASCADE,
+        related_name="stock_transactions",
+    )
+    batch = models.ForeignKey(
+        Batch,
+        on_delete=models.CASCADE,
+        related_name="transactions",
+        verbose_name="Lote",
+    )
+    transaction_type = models.CharField(
+        max_length=10,
+        choices=TRANSACTION_TYPES,
+        verbose_name="Tipo de Movimentação",
+    )
+    quantity = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        verbose_name="Quantidade",
+    )
+
+    class Meta:
+        verbose_name = "movimentação de estoque"
+        verbose_name_plural = "movimentações de estoque"
+        ordering = ["-created_at"]
+
+    def clean(self):
+        super().clean()
+        if self.quantity is not None and self.quantity <= 0:
+            raise ValidationError("A quantidade deve ser maior que zero.")
+        if not self._state.adding:
+            raise ValidationError("Movimentações de estoque não podem ser alteradas após criadas.")
+
+    def save(self, *args, **kwargs):
+        from decimal import Decimal
+        from django.db import transaction as db_transaction
+        
+        with db_transaction.atomic():
+            is_new = self._state.adding
+            if is_new:
+                qty = Decimal(str(self.quantity))
+                # Lock da linha para evitar race conditions (BATCH-03)
+                batch = Batch.objects.select_for_update().get(pk=self.batch_id)
+                if self.transaction_type == "input":
+                    batch.stock_quantity += qty
+                elif self.transaction_type == "output":
+                    if batch.stock_quantity < qty:
+                        raise ValidationError(
+                            f"Saldo insuficiente no lote {batch.batch_code}. Saldo disponível: {batch.stock_quantity}."
+                        )
+                    batch.stock_quantity -= qty
+                batch.clean()
+                batch.save()
+
+                if not self.name:
+                    tipo_display = "Entrada" if self.transaction_type == "input" else "Saída"
+                    self.name = f"{tipo_display} - Lote {batch.batch_code} ({qty:.3f})"
+                
+            self.full_clean()
+            super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Movimentações de estoque não podem ser excluídas para preservar a auditoria.")
+

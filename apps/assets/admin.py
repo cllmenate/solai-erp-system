@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from apps.assets.models import Batch, Brand, Category, Item, Model, TechSheetTemplate
+from apps.assets.models import (
+    Batch,
+    Brand,
+    Category,
+    Item,
+    Model,
+    StockTransaction,
+    TechSheetTemplate,
+)
 
 
 class BatchInline(admin.TabularInline):
@@ -81,3 +89,26 @@ class BatchAdmin(admin.ModelAdmin):
         "item__tenant__subdomain",
     )
     ordering = ("item__tenant", "expiry_date", "batch_code")
+
+
+@admin.register(StockTransaction)
+class StockTransactionAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "batch",
+        "transaction_type",
+        "quantity",
+        "tenant",
+        "created_at",
+        "created_by",
+    )
+    list_filter = ("transaction_type", "tenant", "created_at")
+    search_fields = (
+        "name",
+        "batch__batch_code",
+        "batch__item__name",
+        "tenant__company_name",
+        "tenant__subdomain",
+    )
+    ordering = ("-created_at",)
+
