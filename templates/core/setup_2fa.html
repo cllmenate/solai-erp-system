@@ -1,0 +1,33 @@
+{% extends "commercial/base_dashboard.html" %}
+
+{% block title %}Configurar 2FA - SolAI ERP{% endblock %}
+
+{% block page_title %}Configuração de 2FA{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto animate-fade-in mt-10">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm p-6 md:p-8">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white font-outfit mb-4">Configurar Autenticação em 2 Fatores</h1>
+        <p class="text-slate-600 dark:text-slate-400 mb-6">Escaneie o QR Code abaixo com seu aplicativo autenticador (Google Authenticator, Authy, etc) e insira o código gerado para ativar o 2FA.</p>
+        
+        <div class="flex flex-col items-center justify-center mb-8 bg-slate-50 dark:bg-slate-800 p-6 rounded-xl">
+            <div class="w-48 h-48 bg-white p-2 rounded-lg">
+                {{ svg_data|safe }}
+            </div>
+            <p class="mt-4 text-sm font-mono text-slate-500 dark:text-slate-400">Ou use a chave manual: <span class="font-bold text-slate-900 dark:text-white">{{ device.key }}</span></p>
+        </div>
+
+        <form method="POST" class="space-y-4 max-w-sm mx-auto">
+            {% csrf_token %}
+            <div class="flex flex-col">
+                <label for="token" class="text-sm font-semibold text-slate-900 dark:text-white mb-2">Código de Verificação</label>
+                <input type="text" name="token" id="token" placeholder="Ex: 123456" required class="w-full px-4 py-3 bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-center tracking-widest text-lg focus:outline-none focus:ring-4 focus:ring-brand-500/20 focus:border-brand-500">
+            </div>
+            
+            <div class="pt-2 text-center">
+                {% include "components/btn.html" with type="submit" variant="primary" label="Ativar 2FA" %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

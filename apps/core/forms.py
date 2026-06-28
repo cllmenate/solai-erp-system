@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 
-from apps.core.models import Role, Sector
+from apps.core.models import Role, Sector, Tenant
 
 
 def apply_design_system_styles(form):
@@ -158,3 +158,13 @@ class UserForm(DesignSystemFormMixin, forms.ModelForm):
         if qs.exists():
             raise forms.ValidationError("Este e-mail já está em uso por outro usuário nesta empresa.")
         return email
+
+class TenantSettingsForm(DesignSystemFormMixin, forms.ModelForm):
+    class Meta:
+        model = Tenant
+        fields = ["dpo_name", "dpo_email"]
+        widgets = {
+            "dpo_name": forms.TextInput(attrs={"placeholder": "Ex: João Silva"}),
+            "dpo_email": forms.EmailInput(attrs={"placeholder": "Ex: dpo@empresa.com"}),
+        }
+

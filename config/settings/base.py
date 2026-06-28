@@ -36,6 +36,9 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.commercial",
     "apps.assets",
+    # 2FA
+    "django_otp",
+    "django_otp.plugins.otp_totp",
 ]
 
 MIDDLEWARE = [
@@ -44,10 +47,13 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware",
+    "shared.middleware.enforce_2fa.Enforce2FAMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "shared.middleware.tenant.TenantMiddleware",
     "shared.middleware.ratelimit.RateLimitMiddleware",
+    "shared.middleware.cloudflare_waf.CloudflareWAFMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
 ]
 

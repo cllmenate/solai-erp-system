@@ -12,6 +12,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from simple_history.models import HistoricalRecords
 
+from shared.utils.encryption import EncryptedEmailField
+
 
 class BaseModel(models.Model):
     """
@@ -70,6 +72,8 @@ class Tenant(BaseModel):
         ],
         default="assistive",
     )
+    dpo_name = models.CharField(max_length=255, blank=True, null=True)
+    dpo_email = EncryptedEmailField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         # Auto-set name from trade_name or company_name if name is not set
@@ -223,6 +227,10 @@ class UserPreferences(models.Model):
     dark_mode = models.BooleanField(default=False)
     sidebar_compact = models.BooleanField(default=False)
     visual_theme = models.CharField(max_length=50, default="default")
+    language = models.CharField(max_length=10, default="pt-br")
+    privacy_consent_accepted = models.BooleanField(default=False)
+    privacy_consent_at = models.DateTimeField(blank=True, null=True)
+    privacy_consent_ip = models.GenericIPAddressField(blank=True, null=True)
 
     def __str__(self):
         return f"Preferences for {self.user.username}"

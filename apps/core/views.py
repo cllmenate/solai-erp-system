@@ -15,10 +15,17 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.crypto import get_random_string
 
+from django.utils import timezone
 from apps.core.decorators import tenant_permission_required
-from apps.core.forms import RoleForm, UserForm
+from apps.core.forms import RoleForm, UserForm, TenantSettingsForm
 from apps.core.models import Role, Tenant, UserPreferences
 from apps.core.services import provision_tenant
+from apps.core.services_lgpd import export_user_data_json
+from django_otp.plugins.otp_totp.models import TOTPDevice
+import qrcode
+import qrcode.image.svg
+from io import BytesIO
+from django.http import HttpResponse
 
 
 def login_view(request):
@@ -460,14 +467,110 @@ def profile_view(request):
             messages.success(request, "Preferências de aparência atualizadas com sucesso!")
             return redirect("settings_profile")
 
+        elif action == "privacy":
+            language = request.POST.get("language", "pt-br")
+            privacy_consent = request.POST.get("privacy_consent") == "on"
+
+            preferences.language = language
+            
+            if privacy_consent and not preferences.privacy_consent_accepted:
+                preferences.privacy_consent_accepted = True
+                preferences.privacy_consent_at = timezone.now()
+                # Get client IP securely taking Cloudflare into account
+                ip = request.META.get('HTTP_CF_CONNECTING_IP')
+                if not ip:
+                    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+                    if x_forwarded_for:
+                        ip = x_forwarded_for.split(',')[0]
+                    else:
+                        ip = request.META.get('REMOTE_ADDR')
+                preferences.privacy_consent_ip = ip
+            elif not privacy_consent:
+                preferences.privacy_consent_accepted = False
+                preferences.privacy_consent_at = None
+                preferences.privacy_consent_ip = None
+
+            preferences.save()
+            messages.success(request, "Preferências de privacidade atualizadas com sucesso!")
+            return redirect(f"{request.path}?tab=privacy")
+
     return render(
         request,
         "core/settings_profile.html",
         {
             "preferences": preferences,
-            "active_tab": request.GET.get("tab", "profile")
+            "active_tab": request.GET.get("tab", "profile"),
+            "devices": TOTPDevice.objects.filter(user=request.user)
         }
     )
+
+@tenant_permission_required("core.change_tenant")
+def tenant_settings_view(request):
+    if request.method == "POST":
+        form = TenantSettingsForm(request.POST, instance=request.tenant)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Configurações da empresa (DPO/LGPD) atualizadas com sucesso!")
+            return redirect("settings_tenant")
+    else:
+        form = TenantSettingsForm(instance=request.tenant)
+    return render(request, "core/settings_tenant.html", {"form": form})
+
+def setup_2fa_view(request):
+    if not request.user.is_authenticated:
+        return redirect("login")
+    
+    device, created = TOTPDevice.objects.get_or_create(user=request.user, name="default")
+    
+    if request.method == "POST":
+        token = request.POST.get("token")
+        if device.verify_token(token):
+            device.confirmed = True
+            device.save()
+            messages.success(request, "2FA ativado com sucesso!")
+            return redirect(f"/settings/profile/?tab=privacy")
+        else:
+            messages.error(request, "Código inválido. Tente novamente.")
+
+    url = device.config_url
+    factory = qrcode.image.svg.SvgPathImage
+    img = qrcode.make(url, image_factory=factory)
+    stream = BytesIO()
+    img.save(stream)
+    svg_data = stream.getvalue().decode()
+
+    return render(request, "core/setup_2fa.html", {"svg_data": svg_data, "device": device})
+
+from django_otp import login as otp_login
+
+def verify_2fa_view(request):
+    if not request.user.is_authenticated:
+        return redirect("login")
+        
+    device = TOTPDevice.objects.filter(user=request.user, confirmed=True).first()
+    if not device:
+        return redirect("/")
+
+    if request.method == "POST":
+        token = request.POST.get("token")
+        if device.verify_token(token):
+            otp_login(request, device)
+            messages.success(request, "Acesso verificado com 2FA!")
+            next_url = request.GET.get("next", "/")
+            return redirect(next_url)
+        else:
+            messages.error(request, "Código inválido. Tente novamente.")
+            
+    return render(request, "core/verify_2fa.html")
+
+def export_data_view(request):
+    if not request.user.is_authenticated:
+        return redirect("login")
+        
+    json_data = export_user_data_json(request.user)
+    response = HttpResponse(json_data, content_type="application/json")
+    response["Content-Disposition"] = f'attachment; filename="solai_data_export_{request.user.username}.json"'
+    return response
 
 
 

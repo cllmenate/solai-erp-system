@@ -1,0 +1,45 @@
+{% extends "commercial/base_dashboard.html" %}
+
+{% block title %}Configurações da Empresa - SolAI ERP{% endblock %}
+
+{% block page_title %}Configurações da Empresa{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto animate-fade-in">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white font-outfit">Empresa & Privacidade (LGPD)</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400">Configure os dados do Encarregado de Proteção de Dados (DPO) da sua empresa.</p>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm p-6 md:p-8">
+        <form method="POST" class="space-y-6 max-w-lg">
+            {% csrf_token %}
+            
+            <div class="space-y-4">
+                <div class="flex flex-col">
+                    <span class="text-sm font-semibold text-slate-900 dark:text-white">Nome do DPO</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 mb-2">Encarregado de dados responsável por LGPD.</span>
+                    {{ form.dpo_name }}
+                    {% if form.dpo_name.errors %}
+                        <p class="text-xs text-rose-500 mt-1">{{ form.dpo_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-col">
+                    <span class="text-sm font-semibold text-slate-900 dark:text-white">E-mail do DPO</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 mb-2">E-mail de contato para titulares de dados. (Armazenado com criptografia em repouso)</span>
+                    {{ form.dpo_email }}
+                    {% if form.dpo_email.errors %}
+                        <p class="text-xs text-rose-500 mt-1">{{ form.dpo_email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="pt-4">
+                {% include "components/btn.html" with type="submit" variant="primary" label="Salvar Configurações" %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
